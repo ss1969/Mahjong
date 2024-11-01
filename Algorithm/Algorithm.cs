@@ -3,34 +3,14 @@ using System.Diagnostics;
 
 namespace Algorithm;
 
-public class MahjongTileComparer : IComparer<MahjongTile>
-{
-    public int Compare(MahjongTile? x, MahjongTile? y)
-    {
-        if (x == null || y == null)
-        {
-            throw new ArgumentNullException("Tiles to compare cannot be null.");
-        }
-
-        // 先比较类型
-        int typeComparison = x.Type.CompareTo(y.Type);
-        if (typeComparison != 0)
-        {
-            return typeComparison;
-        }
-
-        // 如果类型相同，再比较号码
-        return x.Number.CompareTo(y.Number);
-    }
-}
 
 public static class StringHelper
 {
-    public static bool RemoveCharsIfPossible(ref string A, string B)
+    public static bool RemoveCharsIfPossible(ref string source, string toRemove)
     {
         // 将字符串A和B转换为List<char>
-        List<char> listA = [.. A];
-        List<char> listB = [.. B];
+        List<char> listA = [.. source];
+        List<char> listB = [.. toRemove];
 
         // 对于B中的每一个字符
         foreach (char charToRemove in listB)
@@ -38,13 +18,13 @@ public static class StringHelper
             // 尝试在listA中找到并移除第一个匹配的字符
             if (!listA.Remove(charToRemove))
             {
-                // 如果移除失败，不修改原始字符串A
+                // 如果移除失败，不修改原始字符串source
                 return false;
             }
         }
 
-        // 如果所有字符顺利移除，则修改为移除后的集合转化后的新字符串
-        A = new string(listA.ToArray());
+        // 如果所有字符顺利移除，则source修改为移除后的集合转化后的新字符串
+        source = new string(listA.ToArray());
         return true;
     }
 
@@ -187,8 +167,13 @@ public static class MahjongHelper
 
     public static int CalculateScore(this List<MahjongTile> tiles, bool trace = false)
     {
-        var sortedNumbers = tiles.Select(tile => tile.Number).OrderBy(number => number);
-        var tileInString = string.Join("", sortedNumbers);
+        if ( tiles.TypeCount() != 1 )
+        {
+            throw new InvalidDataException("Tile pack has more than 1 type");
+        }
+
+        var sortedNumbers = tiles.Select(tile => tile.NumberSimple).OrderBy(number => number);
+        var tileInString = string.Join("", sortedNumbers); // 从0x11 -> 1, 0x21 -> 2
         return CalculateScore(tileInString, trace);
     }
 

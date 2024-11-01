@@ -19,20 +19,14 @@ public class MahjongDeck
     public void Initialize()
     {
         tiles.Clear();
-        foreach (MahjongTile.TileType type in Enum.GetValues(typeof(MahjongTile.TileType)))
+        for ( int i = 0; i < 4; i++ )
         {
-            for (int number = 1; number <= 9; number++)
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    tiles.Add(new MahjongTile
-                    {
-                        Type = type,
-                        Number = number,
-                        TileImage = $"{type.ToString().ToLower()}{number}.png" // 假设图片命名为 wan1.png, tong1.png, tiao1.png
-                    });
-                }
-            }
+            for ( int number = 0x11; number <= 0x19; number++ )
+                tiles.Add( new MahjongTile( number ) );
+            for ( int number = 0x21; number <= 0x29; number++ )
+                tiles.Add( new MahjongTile( number ) );
+            for ( int number = 0x41; number <= 0x49; number++ )
+                tiles.Add( new MahjongTile( number ) );
         }
     }
 
@@ -48,12 +42,12 @@ public class MahjongDeck
         dest.AddTile(tiles.OrderBy(x => random.Next()).First());
     }
 
-    public void DrawTile(ref MahjongHand dest, int wanCount, int tongCount, int tiaoCount)
+    public void DrawTile(ref MahjongHand dest, int tongCount, int tiaoCount, int wanCount)
     {
         // Helper function to draw tiles of a specific type
-        List<MahjongTile> DrawSpecificTiles(MahjongTile.TileType type, int count)
+        List<MahjongTile> DrawSpecificTiles(TileType type, int count)
         {
-            var tilesOfType = tiles.Where(tile => tile.Type == type).OrderBy(tile => random.Next()).Take(count).ToList();
+            var tilesOfType = tiles.Where( t => t.IsType( type ) ).OrderBy(t => random.Next()).Take(count).ToList();
             if (tilesOfType.Count < count)
             {
                 throw new InvalidOperationException($"Not enough {type} tiles in the deck.");
@@ -63,9 +57,9 @@ public class MahjongDeck
 
         try
         {
-            var wanTiles = DrawSpecificTiles(MahjongTile.TileType.Wan, wanCount);
-            var tongTiles = DrawSpecificTiles(MahjongTile.TileType.Tong, tongCount);
-            var tiaoTiles = DrawSpecificTiles(MahjongTile.TileType.Tiao, tiaoCount);
+            var wanTiles = DrawSpecificTiles(TileType.Wan, wanCount);
+            var tongTiles = DrawSpecificTiles(TileType.Tong, tongCount);
+            var tiaoTiles = DrawSpecificTiles(TileType.Tiao, tiaoCount);
 
             // Add drawn tiles to the destination hand and remove them from the deck
             foreach (var tile in wanTiles.Concat(tongTiles).Concat(tiaoTiles))
@@ -74,9 +68,9 @@ public class MahjongDeck
                 tiles.Remove(tile);
             }
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            throw new InvalidOperationException($"AddTile to dest failed");
+            throw new InvalidOperationException($"AddTile() to dest failed");
         }
     }
 }

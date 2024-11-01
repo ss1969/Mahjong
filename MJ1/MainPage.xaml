@@ -4,50 +4,32 @@
              xmlns:local="clr-namespace:MJ1"
              x:Class="MJ1.MainPage">
 
-    <StackLayout Padding="10"
-                 Orientation="Vertical"
-                 Spacing="50">
-        <CollectionView x:Name="TilesCollectionView"
-                        HeightRequest="200"
-                        HorizontalOptions="Center"
-                        ItemsSource="{Binding MyTiles}">
+    <StackLayout Padding="10" Spacing="50" Orientation="Vertical">
+        <CollectionView x:Name="TilesCollectionView" HeightRequest="200" HorizontalOptions="Center" ItemsSource="{Binding MyTilesI}">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical" Span="7" />
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
-                        <Image WidthRequest="50"
-                               HeightRequest="70"
-                               Aspect="AspectFit"
-                               Source="Back1.png" />
-                        <Image WidthRequest="40"
-                               HeightRequest="60"
-                               Margin="0,10,10,0"
-                               Aspect="AspectFit"
-                               Source="{Binding TileImage}" />
+                        <Image WidthRequest="50" HeightRequest="70" Aspect="AspectFit" Source="Back1.png" />
+                        <Image WidthRequest="40" HeightRequest="60" Margin="0,10,10,0" Aspect="AspectFit" Source="{Binding .}" />
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
         <StackLayout HorizontalOptions="Center" Orientation="Horizontal">
-            <Label FontSize="20" Text="万" />
-            <Entry WidthRequest="50" Text="{Binding WanCount}" />
             <Label FontSize="20" Text="筒" />
-            <Entry WidthRequest="50" Text="{Binding TongCount}" />
+            <Entry WidthRequest="50" FontSize="20" Text="{Binding TongCount}" />
             <Label FontSize="20" Text="条" />
-            <Entry WidthRequest="50" Text="{Binding TiaoCount}" />
-            <Label Margin="30,0,0,0"
-                   FontSize="20"
-                   Text="{Binding TotalTiles}" />
+            <Entry WidthRequest="50" FontSize="20" Text="{Binding TiaoCount}" />
+            <Label FontSize="20" Text="万" />
+            <Entry WidthRequest="50" FontSize="20" Text="{Binding WanCount}" />
+            <Label Margin="30,0,0,0" FontSize="20" Text="{Binding TotalTiles}" />
         </StackLayout>
-        <Button WidthRequest="300"
-                Text="Draw Tiles"
-                Command="{Binding DrawCommand}" />
-        <Button WidthRequest="300"
-                Text="Full Randoms"
-                Command="{Binding DrawRandomCommand}" />
+        <Button WidthRequest="300" Text="Draw Tiles" Command="{Binding DrawCommand}" />
+        <Button WidthRequest="300" Text="Full Randoms" Command="{Binding DrawRandomCommand}" />
 
         <!--<StackLayout HorizontalOptions="Center"
                      Orientation="Horizontal"
@@ -55,9 +37,11 @@
             <Button Text="Result" Command="{Binding CalculateCommand}" />
         </StackLayout>-->
 
-        <Label HorizontalOptions="Center"
-               VerticalOptions="CenterAndExpand"
-               Text="{Binding ScoreLabel}" />
+        <StackLayout HorizontalOptions="Center" Orientation="Horizontal">
+            <Label Margin="0,0,20,0" FontAttributes="Bold" FontSize="16" TextColor="{Binding ScoreLabelColor1}" Text="{Binding ScoreLabel1}" />
+            <Label Margin="0,0,20,0" FontAttributes="Bold" FontSize="16" TextColor="{Binding ScoreLabelColor2}" Text="{Binding ScoreLabel2}" />
+            <Label FontAttributes="Bold" FontSize="16" TextColor="{Binding ScoreLabelColor3}" Text="{Binding ScoreLabel3}" />
+        </StackLayout>
     </StackLayout>
 </ContentPage>
 
