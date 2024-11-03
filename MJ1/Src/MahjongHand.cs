@@ -1,41 +1,68 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Algorithm;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace MJ1;
 
-public class MahjongHand
+public partial class MahjongHand : ObservableObject
 {
-    public List<MahjongTile> Tiles { get; private set; }
+    [ObservableProperty]
+    private ObservableCollection<ImageSource> images = [];
 
-    public List<ImageSource> Images() => Tiles.Select( UI.TileImage ).ToList();
+    public List<MahjongTile> Tiles { get; private set; } = [];
 
-    public MahjongHand() 
+    public void SetWhole(List<MahjongTile> init)
     {
-        Tiles = [];
+        Tiles = init;
+        Images = new(Tiles.Select(UI.TileImage));
     }
 
-    public void SetWhole(List<MahjongTile> init) => Tiles = init;
+    public void Clear()
+    {
+        Tiles.Clear();
+        Images.Clear();
+    }
 
-    public void Clear() => Tiles.Clear();
-    
-    public void RemoveTile(MahjongTile tile) => Tiles.Remove(tile);
+    public void RemoveTile(MahjongTile tile)
+    {
+        var index = Tiles.IndexOf(tile);
+        Tiles.Remove(tile);
+        Images.RemoveAt(index);
+    }
+
+    public void ChangeTile(int index, MahjongTile newOne)
+    {
+        if (index >= Tiles.Count)
+            return;
+        Tiles[index] = newOne;
+        Images[index] = UI.TileImage(newOne);
+    }
     
     public int Count => Tiles.Count;
     
-    public List<MahjongTile> GetTileType(TileType type) => Tiles.Where(t => t.IsType(type) ).ToList();
+    public List<MahjongTile> GetTilesByType(TileType type) 
+        => Tiles.Where(t => t.IsType(type) )
+                .ToList();
     
-    public int Score(TileType type)
+    public int GetScoreByType(TileType type)
     {
-        Trace.Write($"Calculate Type: {type} : ");
-        return GetTileType(type).CalculateScore();
+        var s = GetTilesByType(type).Calculate();
+        Trace.Write($"Calculate Type: {type} : {s}");
+        return s;
     }
 
-    public void Sort() => Tiles.SortTiles();
-
-    public void AddTile( MahjongTile tile ) => Tiles.Add( tile );
-
-    public override string ToString()
+    public void Sort()
     {
-        return string.Join(", ", Tiles);
+        MahjongTileHelper.Sort(Tiles);
+        Images = new (Tiles.Select(UI.TileImage));
     }
+
+    public void AddTile(MahjongTile tile)
+    {
+        Tiles.Add(tile);
+        Images.Add(UI.TileImage(tile));
+    }
+
+    public override string ToString() => Tiles.Info();
 }

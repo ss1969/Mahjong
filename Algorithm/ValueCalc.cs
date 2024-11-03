@@ -3,54 +3,12 @@ using System.Diagnostics;
 
 namespace Algorithm;
 
-
-public static class StringHelper
+public static class ValueCalc
 {
-    public static bool RemoveCharsIfPossible(ref string source, string toRemove)
-    {
-        // 将字符串A和B转换为List<char>
-        List<char> listA = [.. source];
-        List<char> listB = [.. toRemove];
+    #region 多个计算不同组合的小函数
+    delegate int CALC_BLOCK(ref string tileInString, bool trace = false);
 
-        // 对于B中的每一个字符
-        foreach (char charToRemove in listB)
-        {
-            // 尝试在listA中找到并移除第一个匹配的字符
-            if (!listA.Remove(charToRemove))
-            {
-                // 如果移除失败，不修改原始字符串source
-                return false;
-            }
-        }
-
-        // 如果所有字符顺利移除，则source修改为移除后的集合转化后的新字符串
-        source = new string(listA.ToArray());
-        return true;
-    }
-
-    public static bool HasDuplicate(this string str)
-    {
-        var seen = new HashSet<char>();
-        foreach (char c in str)
-        {
-            if (!seen.Add(c)) // 如果添加失败，说明c已经在seen中了
-            {
-                return true; // 有重复值
-            }
-        }
-        return false; // 没有重复值
-    }
-}
-
-public static class MahjongHelper
-{
-    /// <summary>
-    /// 测试是否包含对应pattern，如果包含则算分
-    /// </summary>
-    /// <param name="baseString"></param>
-    /// <param name="pattern"></param>
-    /// <param name="scoreBase"></param>
-    /// <returns></returns>
+    // 测试是否包含对应pattern，如果包含则算分
     static int TestPattern(ref string baseString, string[] pattern, int scoreBase)
     {
         int score = 0;
@@ -61,19 +19,6 @@ public static class MahjongHelper
         }
         return score;
     }
-
-    public static void SortTiles(this List<MahjongTile> tiles)
-    {
-        if (tiles.Count == 0)
-        {
-            throw new ArgumentException("Tile list empty.");
-        }
-
-        tiles.Sort(new MahjongTileComparer());
-    }
-
-    #region 多个计算不同组合的小函数
-    delegate int CALC_BLOCK(ref string tileInString, bool trace = false);
 
     private static int CalcAAA(ref string tileInString, bool trace = false)
     {
@@ -165,8 +110,11 @@ public static class MahjongHelper
     }
     #endregion
 
-    public static int CalculateScore(this List<MahjongTile> tiles, bool trace = false)
+    public static int Calculate(this List<MahjongTile> tiles, bool trace = false)
     {
+        if (tiles.Count == 0)
+            return 0;
+
         if ( tiles.TypeCount() != 1 )
         {
             throw new InvalidDataException("Tile pack has more than 1 type");
@@ -174,10 +122,10 @@ public static class MahjongHelper
 
         var sortedNumbers = tiles.Select(tile => tile.NumberSimple).OrderBy(number => number);
         var tileInString = string.Join("", sortedNumbers); // 从0x11 -> 1, 0x21 -> 2
-        return CalculateScore(tileInString, trace);
+        return Calculate(tileInString, trace);
     }
 
-    public static int CalculateScore(string tileInString, bool trace = false)
+    public static int Calculate(string tileInString, bool trace = false)
     {
         // 定义可能影响得分的特定执行顺序
         List<CALC_BLOCK> order1 = [CalcAAA, CalcABC, CalcAA, CalcBC, CalcACE, CalcBD, CalcAC, CalcAB, CalcA]; // 正常顺序
@@ -199,6 +147,7 @@ public static class MahjongHelper
         return score;
     }
 
+    // 按顺序调用上面的小计分方法算分
     private static int CalculateScoreByOrder(string tileInString, List<CALC_BLOCK> order, bool trace)
     {
         int score = tileInString.Length * 10; // 基准分

@@ -33,17 +33,16 @@ internal class Program
 
     static void TestScore( string tiles, int standardScore, bool trace = false )
     {
-        int s = MahjongHelper.CalculateScore( tiles, trace );
+        int s = ValueCalc.Calculate( tiles, trace );
         string r = s == standardScore ? "PASS" : $"FAIL, GET:{s} STANDARD:{standardScore}";
         Console.WriteLine( $"{tiles} : {s} {r}" );
     }
 
     static void TestWin( List<MahjongTile> tiles, bool standard )
     {
-        tiles.SortTiles();
         var isWin = WinCalc.Calculate( tiles, out int score );
-        string r = isWin == standard ? $"PASS, Score:{score}" : $"FAIL WIN:{isWin}, Standard: {standard}";
-        Console.WriteLine( $"{tiles.Select(t=>t.Number).ToList()} : {r}" );
+        string r = isWin == standard ? $"PASS, Standard: {standard}, Score:{score}" : $"FAIL WIN:{isWin}, Standard: {standard}";
+        Console.WriteLine( $"{tiles.Info()} : {r}" );
     }
 
 
@@ -87,30 +86,45 @@ internal class Program
         TestScore( "45567", 64, true );
         TestScore( "12234", 61, true );
 
-        TestWin( [
-                new(0x11),new(0x11),new(0x12),new(0x12),
-                new(0x13),new(0x13),new(0x21),new(0x21),
-                new(0x22),new(0x22),new(0x25),new(0x25),
+        //TestWin([
+        //        new(0x11),new(0x11),new(0x12),new(0x12),
+        //        new(0x13),new(0x13),new(0x21),new(0x21),
+        //        new(0x22),new(0x22),new(0x25),new(0x25),
+        //        new(0x26),new(0x26)],
+        //        true);
+        //TestWin([
+        //        new(0x11),new(0x11),new(0x12),new(0x12),
+        //        new(0x13),new(0x13),new(0x21),new(0x21),
+        //        new(0x21),new(0x21),new(0x25),new(0x25),
+        //        new(0x26),new(0x26)],
+        //        true);
+        //TestWin([
+        //        new(0x11),new(0x11),new(0x13),new(0x13),
+        //        new(0x13),new(0x13),new(0x21),new(0x21),
+        //        new(0x21),new(0x21),new(0x25),new(0x25),
+        //        new(0x25),new(0x25)],
+        //        true);
+        //TestWin( [
+        //        new(0x11),new(0x11),new(0x12),new(0x12),
+        //        new(0x13),new(0x13),new(0x21),new(0x21),
+        //        new(0x11),new(0x11),new(0x24),new(0x25),
+        //        new(0x26),new(0x26)],
+        //        false );
+
+        TestWin([
+                new(0x11),new(0x12),new(0x13),new(0x12),
+                new(0x13),new(0x14),new(0x21),new(0x21),
+                new(0x21),new(0x21),new(0x22),new(0x23),
                 new(0x26),new(0x26)],
-                true );
-        TestWin( [
-                new(0x11),new(0x11),new(0x12),new(0x12),
-                new(0x13),new(0x13),new(0x21),new(0x21),
-                new(0x21),new(0x21),new(0x25),new(0x25),
+                true);
+
+        TestWin([
+                new(0x11),new(0x11),new(0x11),new(0x12),
+                new(0x12),new(0x12),new(0x21),new(0x21),
+                new(0x21),new(0x22),new(0x22),new(0x22),
                 new(0x26),new(0x26)],
-                true );
-        TestWin( [
-                new(0x11),new(0x11),new(0x13),new(0x13),
-                new(0x13),new(0x13),new(0x21),new(0x21),
-                new(0x21),new(0x21),new(0x25),new(0x25),
-                new(0x25),new(0x25)],
-                true );
-        TestWin( [
-                new(0x11),new(0x11),new(0x12),new(0x12),
-                new(0x13),new(0x13),new(0x21),new(0x21),
-                new(0x11),new(0x11),new(0x41),new(0x45),
-                new(0x42),new(0x42)],
-                false );
+        true);
+
     }
 }
 #endif

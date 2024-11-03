@@ -5,14 +5,14 @@ namespace MJ1;
 
 public class MahjongDeck
 {
-    private List<MahjongTile> tiles;
+    private static readonly List<MahjongTile> value = [];
+    private List<MahjongTile> tiles = value;
     private static readonly Random random = new ();
 
     public string TileBack { get; set; } = "Back1.png";
 
     public MahjongDeck()
     {
-        tiles = [];
         Initialize();
     }
     
@@ -31,18 +31,20 @@ public class MahjongDeck
     }
 
     // 摸牌
-    public void DrawTile(ref MahjongHand dest, int count)
+    public MahjongHand DrawTile(ref MahjongHand dest, int count)
     {
         Debug.Assert(dest != null); 
         dest.SetWhole(tiles.OrderBy(x => random.Next()).Take(count).ToList());
+        return dest;
     }
 
-    public void DrawTile(ref MahjongHand dest)
+    public MahjongHand DrawTile(ref MahjongHand dest)
     {
         dest.AddTile(tiles.OrderBy(x => random.Next()).First());
+        return dest;
     }
 
-    public void DrawTile(ref MahjongHand dest, int tongCount, int tiaoCount, int wanCount)
+    public MahjongHand DrawTile(ref MahjongHand dest, int tongCount, int tiaoCount, int wanCount)
     {
         // Helper function to draw tiles of a specific type
         List<MahjongTile> DrawSpecificTiles(TileType type, int count)
@@ -72,5 +74,7 @@ public class MahjongDeck
         {
             throw new InvalidOperationException($"AddTile() to dest failed");
         }
+
+        return dest;
     }
 }
