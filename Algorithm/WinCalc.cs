@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,9 +11,11 @@ namespace Algorithm;
 public enum ScoreType
 {
     NORMAL = 1,
+    DA_DUI = 2,
+    SINGLE_FISHING = 2, //未用
+    QING_YISE = 4,
     SEVEN_PAIR = 4,
-    SINGLE_FISHING = 4,
-    ONE_NINE = 8,
+    ONE_NINE = 8,   //未用
 }
 
 public static class WinCalc
@@ -89,7 +92,7 @@ public static class WinCalc
         allTriple3 = tripleCount == tiles.Count / 3;
 
         if(canSplitIntoTriples)
-            Console.Write($"CanSplitIntoTriples: {tiles.Info()}");
+            Trace.WriteLine($"CanSplitIntoTriples: {tiles.Info()}");
         return canSplitIntoTriples;
     }
 
@@ -120,7 +123,7 @@ public static class WinCalc
         var hiddenTiles = tiles.GetHiddenTiles();
         var jiangs = hiddenTiles.GetJiangs();
 
-        Console.WriteLine("将：" + jiangs.Info());
+        Trace.WriteLine("将：" + jiangs.Info());
         // 去掉将的牌，进行拆解
         foreach (var jiang in jiangs)
         {
@@ -130,7 +133,7 @@ public static class WinCalc
 
             if (tilesCopy.CanSplitIntoTriples(out isAllPairs))
             {
-                Console.WriteLine($"{tilesCopy.Info()} 可以 ");
+                Trace.WriteLine($"{tilesCopy.Info()} 可以 ");
                 return true;
             }
         }
@@ -162,7 +165,6 @@ public static class WinCalc
         // 判断7对
         if ( tiles.Is7Pairs() )
         {
-            score = (int) ScoreType.SEVEN_PAIR;
             is7 = true;
             goto COUNT;
         }
@@ -182,22 +184,23 @@ public static class WinCalc
 
         // 算分
         COUNT:
+        score = (int) ScoreType.NORMAL;
         int dragonCount = tiles.FourSetsCount();
         for (int i = 0; i < dragonCount; i++) { 
             score *= 2;
         }
 
-        if (is7) score *= 4;
-        if (isDADUI) score *= 2;
-        if (isQING) score *= 4;
+        if (is7) score *= (int)ScoreType.SEVEN_PAIR;
+        if (isDADUI) score *= (int)ScoreType.DA_DUI;
+        if (isQING) score *= (int)ScoreType.QING_YISE;
 
         var suStr = isNORMAL ? "素番" : "";
         var sevenStr = is7 ? "暗七对" : "";
         var duiStr = isDADUI ? ",大对" : "";
         var qingStr = isQING ? ",清一色" : "";
-        detail = $"{suStr}{sevenStr}{qingStr}{duiStr}，杠{dragonCount}个";
+        detail = $"{suStr}{sevenStr}{qingStr}{duiStr},杠{dragonCount}个";
 
-        Console.WriteLine(detail);
+        Trace.WriteLine(detail);
         return true;
     }
 

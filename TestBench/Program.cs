@@ -40,8 +40,8 @@ internal class Program
 
     static void TestWin( List<MahjongTile> tiles, bool standard )
     {
-        var isWin = WinCalc.Calculate( tiles, out int score );
-        string r = isWin == standard ? $"PASS, Standard: {standard}, Score:{score}" : $"FAIL WIN:{isWin}, Standard: {standard}";
+        var isWin = WinCalc.Calculate( tiles, out int score, out string detail );
+        string r = (isWin == standard ? "PASS" : "FAIL") + $", Standard: {standard}, Score:{score}, {detail}";
         Console.WriteLine( $"{tiles.Info()} : {r}" );
     }
 
@@ -86,24 +86,24 @@ internal class Program
         TestScore( "45567", 64, true );
         TestScore( "12234", 61, true );
 
-        //TestWin([
-        //        new(0x11),new(0x11),new(0x12),new(0x12),
-        //        new(0x13),new(0x13),new(0x21),new(0x21),
-        //        new(0x22),new(0x22),new(0x25),new(0x25),
-        //        new(0x26),new(0x26)],
-        //        true);
-        //TestWin([
-        //        new(0x11),new(0x11),new(0x12),new(0x12),
-        //        new(0x13),new(0x13),new(0x21),new(0x21),
-        //        new(0x21),new(0x21),new(0x25),new(0x25),
-        //        new(0x26),new(0x26)],
-        //        true);
-        //TestWin([
-        //        new(0x11),new(0x11),new(0x13),new(0x13),
-        //        new(0x13),new(0x13),new(0x21),new(0x21),
-        //        new(0x21),new(0x21),new(0x25),new(0x25),
-        //        new(0x25),new(0x25)],
-        //        true);
+        TestWin([
+                new(0x11),new(0x11),new(0x12),new(0x12),
+                new(0x13),new(0x13),new(0x21),new(0x21),
+                new(0x22),new(0x22),new(0x25),new(0x25),
+                new(0x26),new(0x26)],
+                true); // 暗七对
+        TestWin([
+                new(0x11),new(0x11),new(0x12),new(0x12),
+                new(0x13),new(0x13),new(0x21),new(0x21),
+                new(0x21),new(0x21),new(0x25),new(0x25),
+                new(0x26),new(0x26)],
+                true); // 龙七对
+        TestWin([
+                new(0x11),new(0x11),new(0x12),new(0x12),
+                new(0x13),new(0x13),new(0x21),new(0x21),
+                new(0x21),new(0x21),new(0x25),new(0x25),
+                new(0x25),new(0x25)],
+                true); // 双龙七对
         //TestWin( [
         //        new(0x11),new(0x11),new(0x12),new(0x12),
         //        new(0x13),new(0x13),new(0x21),new(0x21),

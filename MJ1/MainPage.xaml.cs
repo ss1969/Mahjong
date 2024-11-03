@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.Controls;
 using Algorithm;
 using System.Diagnostics;
+using Microsoft.Maui.Controls.PlatformConfiguration;
 
 namespace MJ1;
 
@@ -40,20 +41,21 @@ public partial class ViewModel : ObservableObject
     [ObservableProperty]
     private int tiaoCount = 5; 
     [ObservableProperty]
-    private int totalTiles = 13;
+    private string totalTiles = "总13 张";
 
     partial void OnWanCountChanged(int value)
     {
-        TotalTiles = WanCount + TongCount + TiaoCount;
+        TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
     }
     partial void OnTongCountChanged(int value)
     {
-        TotalTiles = WanCount + TongCount + TiaoCount;
+        TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
     }
     partial void OnTiaoCountChanged(int value)
     {
-        TotalTiles = WanCount + TongCount + TiaoCount;
+        TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
     }
+
     #endregion
 
     public ViewModel()
@@ -119,14 +121,28 @@ public partial class ViewModel : ObservableObject
         WinLabelColor = win ? Colors.Red : Colors.Green;
     }
 
+    private void VibrateDevice()
+    {
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+        {
+            TimeSpan vibrationLength = TimeSpan.FromMilliseconds(50);
+            Vibration.Default.Vibrate(vibrationLength);
+        }
+    }
+
     #region Commands
     [RelayCommand]
     private void Draw(string countStr)
     {
-        var p = countStr.Split(",");
-        if (!string.IsNullOrEmpty(p[0])) TongCount = int.Parse(p[0]);
-        if (!string.IsNullOrEmpty(p[1])) TiaoCount = int.Parse(p[1]);
-        if (!string.IsNullOrEmpty(p[2])) WanCount = int.Parse(p[2]);
+        VibrateDevice();
+
+        if (!string.IsNullOrEmpty(countStr))
+        {
+            var p = countStr.Split(",");
+            if (!string.IsNullOrEmpty(p[0])) TongCount = int.Parse(p[0]);
+            if (!string.IsNullOrEmpty(p[1])) TiaoCount = int.Parse(p[1]);
+            if (!string.IsNullOrEmpty(p[2])) WanCount = int.Parse(p[2]);
+        }
 
         Deck.Initialize();
         HandTiles.Clear();
@@ -141,6 +157,8 @@ public partial class ViewModel : ObservableObject
     [RelayCommand]
     private void DrawRandom(string countStr)
     {
+        VibrateDevice();
+
         int count = Int32.Parse(countStr);
         Deck.Initialize();
         HandTiles.Clear();
@@ -153,27 +171,31 @@ public partial class ViewModel : ObservableObject
     }
     #endregion
 
-    public void OnSwipe(ImageSource item, bool Up)
+    public void OnSwipe(ImageSource item, bool minus)
     {
         int index = HandTiles.Images.IndexOf( item );
         var t = HandTiles.Tiles[index];
         int newValue;
 
-        if(Up)
+        VibrateDevice();
+
+        if (minus)
         {
-            Trace.WriteLine($"Item at index {index} swiped UP");
-            // 如果已经是 9 了，退出
-            if (t.NumberSimple == 9) return;
-            // 尝试 +1
-            newValue = t.Number + 1;
+            //Trace.WriteLine($"Item at index {index} swiped UP");
+            // 如果已经是 1 了，退出
+            if (t.NumberSimple == 1)
+                newValue = (t.Number & 0xF0) + 9;
+            else
+                newValue = t.Number - 1;
         }
         else
         {
-            Trace.WriteLine($"Item at index {index} swiped down");
-            // 如果已经是 1 了，退出
-            if (t.NumberSimple == 1) return;
-            // 尝试 -1
-            newValue = t.Number - 1;
+            //Trace.WriteLine($"Item at index {index} swiped down");
+            // 如果已经是 9 了，退出
+            if (t.NumberSimple == 9)
+                newValue = (t.Number & 0xF0) + 1;
+            else
+                newValue = t.Number + 1;
         }
 
         // 已经有4个牌了（ kiilii 算法有问题，不是很好，不能直接跳过 ）
@@ -188,58 +210,32 @@ public partial class ViewModel : ObservableObject
         CalculateTileValue();
         CalculateHandTileWin();
     }
+
 }
 
 
 public partial class MainPage : ContentPage
 {
-    private double _panStartPositionY;
-    private double _panTotalY;
-
     public MainPage()
     {
         InitializeComponent();
         BindingContext = new ViewModel();
     }
 
-    private void OnPanUpdated(object sender, PanUpdatedEventArgs e)
+    private void OnSwipedEvent(object sender, SwipedEventArgs e)
     {
-        const double swipeMinimumDistance = 30;
         var grid = sender as Grid;
-
-        switch (e.StatusType)
+        var item = grid?.BindingContext as ImageSource;
+        Trace.WriteLine(e.Direction);
+        switch (e.Direction)
         {
-            case GestureStatus.Started:
-                Trace.WriteLine("G-Start");
-                _panStartPositionY = e.TotalY;
+            case SwipeDirection.Down:
+            case SwipeDirection.Left:
+                (BindingContext as ViewModel)!.OnSwipe(item!, true);
                 break;
-
-            case GestureStatus.Running:
-                _panTotalY = e.TotalY;
-                break;
-
-            case GestureStatus.Completed:
-                double panDistance = _panTotalY - _panStartPositionY;
-                Trace.WriteLine($"G-Complete {panDistance}");
-
-                if (Math.Abs(panDistance) >= swipeMinimumDistance)
-                {
-                    var item = grid?.BindingContext as ImageSource;
-                    if (panDistance < 0)
-                    {
-                        (BindingContext as ViewModel)!.OnSwipe(item!, true);
-                    }
-                    else
-                    {
-                        (BindingContext as ViewModel)!.OnSwipe(item!, false);
-                    }
-                }
-                // 重置位置
-                _panStartPositionY = 0;
-                _panTotalY = 0;
-                break;
-            default:
-                Trace.WriteLine($"G-{e.StatusType}");
+            case SwipeDirection.Up:
+            case SwipeDirection.Right:
+                (BindingContext as ViewModel)!.OnSwipe(item!, false);
                 break;
         }
     }
