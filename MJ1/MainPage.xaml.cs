@@ -1,22 +1,12 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.Controls;
 using Algorithm;
-using System.Diagnostics;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 
 namespace MJ1;
 
 public partial class ViewModel : ObservableObject
 {
     #region Properties
-    [ObservableProperty]
-    private MahjongHand handTiles;
-    
-    [ObservableProperty] 
-    private MahjongDeck deck;
-
     [ObservableProperty]
     private string scoreLabel1 = "";
     [ObservableProperty]
@@ -43,25 +33,21 @@ public partial class ViewModel : ObservableObject
     [ObservableProperty]
     private string totalTiles = "总13 张";
 
-    partial void OnWanCountChanged(int value)
-    {
-        TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
-    }
-    partial void OnTongCountChanged(int value)
-    {
-        TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
-    }
-    partial void OnTiaoCountChanged(int value)
-    {
-        TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
-    }
+    partial void OnWanCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
+    partial void OnTongCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
+    partial void OnTiaoCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
 
     #endregion
 
+    private MahjongDeck _deck;
+    private MahjongHand _handTile;
+    public event Action<MahjongHand>? UpdateHandView = null;
+    public Grid TilesOne { get; set; } = [];
+
     public ViewModel()
     {
-        Deck = new();
-        HandTiles = new();
+        _deck = new();
+        _handTile = new();
     }
 
     public static void FindMaxMin( int num1, int num2, int num3, out int maxValue, out int minValue )
@@ -93,9 +79,9 @@ public partial class ViewModel : ObservableObject
 
     private void CalculateTileValue()
     {
-        var s1 = HandTiles.GetScoreByType(TileType.Tong);
-        var s2 = HandTiles.GetScoreByType(TileType.Tiao);
-        var s3 = HandTiles.GetScoreByType(TileType.Wan);
+        var s1 = _handTile.GetScoreByType(TileType.Tong);
+        var s2 = _handTile.GetScoreByType(TileType.Tiao);
+        var s3 = _handTile.GetScoreByType(TileType.Wan);
         FindMaxMin(s1, s2, s3, out int max, out int min);
 
         ScoreLabel1 = $"筒: {s1}";
@@ -113,20 +99,74 @@ public partial class ViewModel : ObservableObject
         else ScoreLabelColor3 = Colors.White;
     }
 
-    // 计算胡牌，不管张数
-    private void CalculateHandTileWin()
+    private void CalculateHandTileWin() // 计算胡牌，不管张数
     {
-        var win = HandTiles.Tiles.Calculate(out int score, out string detail);
+        var win = _handTile.Tiles.Calculate(out int score, out string detail);
         WinLabel = win ? $"WIN {score} {detail}" : $"NO {detail}";
         WinLabelColor = win ? Colors.Red : Colors.Green;
     }
 
-    private void VibrateDevice()
+    private static void VibrateDevice()
     {
         if (DeviceInfo.Platform == DevicePlatform.Android)
         {
             TimeSpan vibrationLength = TimeSpan.FromMilliseconds(50);
             Vibration.Default.Vibrate(vibrationLength);
+        }
+    }
+    
+    private void UpdateHandtileToGrid(MahjongHand hand, Grid grid)
+    {
+        grid.ColumnDefinitions.Clear();
+        grid.Children.Clear();
+        int tileCount = hand.Tiles.Count;
+
+        // 动态创建列定义
+        for (int i = 0; i < tileCount; i++)
+        {
+            grid.ColumnDefinitions.Add(new (){ Width = GridLength.Auto });
+            var back = new Image{ Source = UI.Back1 };
+            var image = new Image{ Source = hand.Images[i], 
+                                        Margin = new (0,12,12,0) };
+
+            // 添加手势
+            int index = i;
+            var swipeUp = new SwipeGestureRecognizer{ 
+                Direction = SwipeDirection.Up,
+                Threshold = 20
+            };
+            swipeUp.Swiped += (sender, e) =>
+            {
+                VibrateDevice();
+                _handTile.Modify1(index, true);
+                _handTile.Sort();
+                UpdateHandtileToGrid(_handTile, TilesOne);
+                CalculateTileValue();
+                CalculateHandTileWin();
+            };
+
+            var swipeDown = new SwipeGestureRecognizer{ 
+                Direction = SwipeDirection.Down,
+                Threshold = 20,
+            };
+            swipeDown.Swiped += (sender, e) =>
+            {
+                VibrateDevice();
+                _handTile.Modify1(index, false);
+                _handTile.Sort();
+                UpdateHandtileToGrid(_handTile, TilesOne);
+                CalculateTileValue();
+                CalculateHandTileWin();
+            };
+
+            image.GestureRecognizers.Add(swipeUp);
+            image.GestureRecognizers.Add(swipeDown);
+
+            // 加入Grid
+            grid.Children.Add(back);
+            grid.Children.Add(image);
+            Grid.SetColumn(back, i);
+            Grid.SetColumn(image, i);
         }
     }
 
@@ -136,20 +176,25 @@ public partial class ViewModel : ObservableObject
     {
         VibrateDevice();
 
+        _deck.Initialize();
+        _handTile.Clear();
+
         if (!string.IsNullOrEmpty(countStr))
         {
+            int tong, tiao, wan;
             var p = countStr.Split(",");
-            if (!string.IsNullOrEmpty(p[0])) TongCount = int.Parse(p[0]);
-            if (!string.IsNullOrEmpty(p[1])) TiaoCount = int.Parse(p[1]);
-            if (!string.IsNullOrEmpty(p[2])) WanCount = int.Parse(p[2]);
+            tong = int.Parse(p[0]); // never fail because parameter is in .xaml
+            tiao = int.Parse(p[1]);
+            wan = int.Parse(p[2]);
+            _deck.DrawTile(ref _handTile, tong, tiao, wan);
+        }
+        else
+        {
+            _deck.DrawTile(ref _handTile, TongCount, TiaoCount, WanCount);
         }
 
-        Deck.Initialize();
-        HandTiles.Clear();
-        Deck.DrawTile(ref handTiles, TongCount, TiaoCount, WanCount);
-        HandTiles.Sort();
-        OnPropertyChanged(nameof(HandTiles)); // 触发属性变化通知更新绑定
-
+        _handTile.Sort();
+        UpdateHandtileToGrid(_handTile, TilesOne);
         CalculateTileValue();
         CalculateHandTileWin();
     }
@@ -160,58 +205,16 @@ public partial class ViewModel : ObservableObject
         VibrateDevice();
 
         int count = Int32.Parse(countStr);
-        Deck.Initialize();
-        HandTiles.Clear();
-        Deck.DrawTile(ref handTiles, count);
-        HandTiles.Sort();
-        OnPropertyChanged(nameof(HandTiles)); // 触发属性变化通知更新绑定
-
+        _deck.Initialize();
+        _handTile.Clear();
+        _deck.DrawTile(ref _handTile, count);
+        _handTile.Sort();
+        UpdateHandtileToGrid(_handTile, TilesOne);
         CalculateTileValue();
         CalculateHandTileWin();
     }
     #endregion
-
-    public void OnSwipe(ImageSource item, bool minus)
-    {
-        int index = HandTiles.Images.IndexOf( item );
-        var t = HandTiles.Tiles[index];
-        int newValue;
-
-        VibrateDevice();
-
-        if (minus)
-        {
-            //Trace.WriteLine($"Item at index {index} swiped UP");
-            // 如果已经是 1 了，退出
-            if (t.NumberSimple == 1)
-                newValue = (t.Number & 0xF0) + 9;
-            else
-                newValue = t.Number - 1;
-        }
-        else
-        {
-            //Trace.WriteLine($"Item at index {index} swiped down");
-            // 如果已经是 9 了，退出
-            if (t.NumberSimple == 9)
-                newValue = (t.Number & 0xF0) + 1;
-            else
-                newValue = t.Number + 1;
-        }
-
-        // 已经有4个牌了（ kiilii 算法有问题，不是很好，不能直接跳过 ）
-        if (HandTiles.Tiles.GetSpecificCount(newValue) == 4) return;
-
-        // 修改
-        HandTiles.ChangeTile(index, new(newValue));
-        HandTiles.Sort();
-        //Trace.WriteLine($"Tiles #{index} => {newValue}");
-
-        // 计算
-        CalculateTileValue();
-        CalculateHandTileWin();
-    }
-
-}
+ }
 
 
 public partial class MainPage : ContentPage
@@ -220,23 +223,7 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         BindingContext = new ViewModel();
+        (BindingContext as ViewModel)!.TilesOne = TilesOne;
     }
 
-    private void OnSwipedEvent(object sender, SwipedEventArgs e)
-    {
-        var grid = sender as Grid;
-        var item = grid?.BindingContext as ImageSource;
-        Trace.WriteLine(e.Direction);
-        switch (e.Direction)
-        {
-            case SwipeDirection.Down:
-            case SwipeDirection.Left:
-                (BindingContext as ViewModel)!.OnSwipe(item!, true);
-                break;
-            case SwipeDirection.Up:
-            case SwipeDirection.Right:
-                (BindingContext as ViewModel)!.OnSwipe(item!, false);
-                break;
-        }
-    }
 }

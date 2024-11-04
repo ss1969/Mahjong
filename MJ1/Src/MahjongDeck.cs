@@ -9,11 +9,12 @@ public class MahjongDeck
     private List<MahjongTile> tiles = value;
     private static readonly Random random = new ();
 
-    public string TileBack { get; set; } = "Back1.png";
+    public Image TileBack { get; set; }
 
     public MahjongDeck()
     {
         Initialize();
+        TileBack =  new Image() { Source = UI.Back1 };
     }
     
     public void Initialize()

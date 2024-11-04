@@ -6,8 +6,6 @@
        Title="MJ1"
        Shell.FlyoutBehavior="Disabled">
 
-    <ShellContent Title="Mahjong"
-                  ContentTemplate="{DataTemplate local:MainPage}"
-                  Route="MainPage" />
+    <ShellContent ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage" />
 
 </Shell>
