@@ -5,6 +5,14 @@ namespace MJ1;
 
 public static class UI
 {
+    private static GCHandle handle;
+    static UI()
+    {
+        var instance = new object();
+        // 固定实例,防止被垃圾回收
+        handle = GCHandle.Alloc(instance, GCHandleType.Normal);
+    }
+
     public static readonly ImageSource Tile0x11 = ImageSource.FromFile("Tong1.png");
     public static readonly ImageSource Tile0x12 = ImageSource.FromFile("Tong2.png");
     public static readonly ImageSource Tile0x13 = ImageSource.FromFile("Tong3.png");

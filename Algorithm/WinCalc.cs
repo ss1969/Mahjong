@@ -21,8 +21,7 @@ public enum ScoreType
 public static class WinCalc
 {
     // 是否打缺
-    private static bool IsQUE( this List<MahjongTile> tiles ) => tiles.TypeCount() <= 2;
-
+    public static bool IsQUE( this List<MahjongTile> tiles ) => tiles.TypeCount() <= 2;
 
     // 获取所有的可能将，不重复。只返回单张。
     private static List<MahjongTile> GetJiangs(this List<MahjongTile> tiles)
@@ -123,7 +122,7 @@ public static class WinCalc
         var hiddenTiles = tiles.GetHiddenTiles();
         var jiangs = hiddenTiles.GetJiangs();
 
-        Trace.WriteLine("将：" + jiangs.Info());
+        //Trace.WriteLine("将：" + jiangs.Info());
         // 去掉将的牌，进行拆解
         foreach (var jiang in jiangs)
         {

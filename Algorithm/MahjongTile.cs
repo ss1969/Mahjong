@@ -31,7 +31,8 @@ public static class MahjongTileHelper
 {
     // 打印输出
     public static string Info(this List<MahjongTile> tiles)
-        => $"[{ string.Join(",", tiles.Select(t => $"{t.Number:X2}")) }]";
+        //=> $"[{ string.Join(",", tiles.Select(t => $"{t.Number:X2}")) }]";
+        => string.Join(",", tiles.Select(t=>t.Number.GetName()));
 
     // 排序
     public static void Sort(this List<MahjongTile> tiles)
@@ -42,6 +43,18 @@ public static class MahjongTileHelper
         }
 
         tiles.Sort(new MahjongTileComparer());
+    }
+
+    // 数字得到牌名
+    public static string GetName(this int number)
+    {
+        string name = number switch
+        {
+            _ when number < 0x1A => "筒",
+            _ when number > 0x40 => "万",
+            _  => "条",
+        };
+        return (number & 0xF).ToString() + name;
     }
 
     // 是否某种花色
@@ -93,6 +106,30 @@ public static class MahjongTileHelper
         => tiles.Where( t => t.Open ).ToList();
     public static List<MahjongTile> GetHiddenTiles( this List<MahjongTile> tiles ) 
         => tiles.Where( t => !t.Open ).ToList();
+
+    // 获取关联牌（相差不超过1）
+    public static List<MahjongTile> GetConnectedTiles(this List<MahjongTile> tiles)
+    {
+        bool[] isPresent = new bool[0x4A]; // 用于标记数字 0x11 到 0x49 是否在结果中
+
+        foreach (var t in tiles.Distinct())
+        {
+            isPresent[t.Number] = true; // 标记数字本身
+            if (t.NumberSimple != 1) isPresent[t.Number - 1] = true; // 标记 num - 1
+            if (t.NumberSimple != 9) isPresent[t.Number + 1] = true; // 标记 num + 1
+        }
+
+        // 根据 isPresent 数组生成结果列表
+        List<MahjongTile> result = [];
+        for (int i = 1; i < 0x4A; i++)
+        {
+            if (isPresent[i])
+                result.Add(new MahjongTile(i));
+        }
+
+        return result;
+    }
+
 
 }
 

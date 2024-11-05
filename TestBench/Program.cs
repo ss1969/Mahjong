@@ -86,12 +86,14 @@ internal class Program
         TestScore( "45567", 64, true );
         TestScore( "12234", 61, true );
 
-        TestWin([
+
+        List<MahjongTile> t1 = [
                 new(0x11),new(0x11),new(0x12),new(0x12),
                 new(0x13),new(0x13),new(0x21),new(0x21),
                 new(0x22),new(0x22),new(0x25),new(0x25),
-                new(0x26),new(0x26)],
-                true); // 暗七对
+                new(0x26),new(0x26)];
+        TestWin(t1, true); // 暗七对
+
         TestWin([
                 new(0x11),new(0x11),new(0x12),new(0x12),
                 new(0x13),new(0x13),new(0x21),new(0x21),
@@ -125,6 +127,8 @@ internal class Program
                 new(0x26),new(0x26)],
         true);
 
+        var t1c = t1.GetConnectedTiles();
+        Console.WriteLine("t1c " + t1c.Info());
     }
 }
 #endif

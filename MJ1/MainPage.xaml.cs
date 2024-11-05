@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Algorithm;
+using System.Diagnostics;
 
 namespace MJ1;
 
@@ -33,6 +34,10 @@ public partial class ViewModel : ObservableObject
     [ObservableProperty]
     private string totalTiles = "总13 张";
 
+    [ObservableProperty]
+    private string canWinTiles = "听牌：";
+    
+
     partial void OnWanCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
     partial void OnTongCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
     partial void OnTiaoCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
@@ -41,8 +46,8 @@ public partial class ViewModel : ObservableObject
 
     private MahjongDeck _deck;
     private MahjongHand _handTile;
-    public event Action<MahjongHand>? UpdateHandView = null;
-    public Grid TilesOne { get; set; } = [];
+    public Grid TilesOne { get; set; } = [];    // 第一行
+
 
     public ViewModel()
     {
@@ -99,14 +104,42 @@ public partial class ViewModel : ObservableObject
         else ScoreLabelColor3 = Colors.White;
     }
 
-    private void CalculateHandTileWin() // 计算胡牌，不管张数
+    private void CalculateTilesCanWin() // 计算胡牌，不管张数
     {
         var win = _handTile.Tiles.Calculate(out int score, out string detail);
         WinLabel = win ? $"WIN {score} {detail}" : $"NO {detail}";
         WinLabelColor = win ? Colors.Red : Colors.Green;
     }
 
-    private static void VibrateDevice()
+    private void CalculateTilesToWin()
+    {
+        if (!_handTile.Tiles.IsQUE())
+            return;
+
+        // 创建副本用于计算，否则会影响到Swipe
+        List<MahjongTile> tilesCopy = new(_handTile.Tiles); 
+        
+        // 计算
+        List<MahjongTile> canWin = []; // 花色
+        int canWinCount = 0; // 张数
+        var connected = tilesCopy.GetConnectedTiles();
+        foreach (var t in connected)
+        {
+            tilesCopy.Add(t);
+            if(tilesCopy.Calculate(out _, out _)) {  canWin.Add(t); }
+            tilesCopy.Remove(t);
+        }
+        Trace.WriteLine("can win " + canWin.Info());
+
+        // 计算剩余牌数
+        canWinCount = canWin.Count * 4;
+        canWinCount -= _handTile.Tiles.Count(t => canWin.Contains(t));
+
+        // 输出
+        CanWinTiles = $"听牌：{canWin.Info()}, 共 {canWin.Count} 类 {canWinCount} 张";
+    }
+
+private static void VibrateDevice()
     {
         if (DeviceInfo.Platform == DevicePlatform.Android)
         {
@@ -142,7 +175,8 @@ public partial class ViewModel : ObservableObject
                 _handTile.Sort();
                 UpdateHandtileToGrid(_handTile, TilesOne);
                 CalculateTileValue();
-                CalculateHandTileWin();
+                CalculateTilesCanWin();
+                CalculateTilesToWin();
             };
 
             var swipeDown = new SwipeGestureRecognizer{ 
@@ -156,7 +190,8 @@ public partial class ViewModel : ObservableObject
                 _handTile.Sort();
                 UpdateHandtileToGrid(_handTile, TilesOne);
                 CalculateTileValue();
-                CalculateHandTileWin();
+                CalculateTilesCanWin();
+                CalculateTilesToWin();
             };
 
             image.GestureRecognizers.Add(swipeUp);
@@ -196,7 +231,8 @@ public partial class ViewModel : ObservableObject
         _handTile.Sort();
         UpdateHandtileToGrid(_handTile, TilesOne);
         CalculateTileValue();
-        CalculateHandTileWin();
+        CalculateTilesCanWin();
+        CalculateTilesToWin();
     }
 
     [RelayCommand]
@@ -211,7 +247,8 @@ public partial class ViewModel : ObservableObject
         _handTile.Sort();
         UpdateHandtileToGrid(_handTile, TilesOne);
         CalculateTileValue();
-        CalculateHandTileWin();
+        CalculateTilesCanWin();
+        CalculateTilesToWin();
     }
     #endregion
  }
