@@ -85,5 +85,5 @@ public partial class MahjongHand : ObservableObject
         ChangeTile(index, new(newValue));
     }
 
-    public override string ToString() => Tiles.Info();
+    public override string ToString() => Tiles.Name();
 }

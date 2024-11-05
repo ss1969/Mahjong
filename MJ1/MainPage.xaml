@@ -112,7 +112,7 @@
                      Orientation="Horizontal">
             <Label Margin="0,0,20,0"
                    FontSize="16"
-                   Text="{Binding TotalTiles}" />
+                   Text="{Binding TotalTiles, StringFormat='共{0} 张'}" />
             <Label Margin="0,0,20,0"
                    FontAttributes="Bold"
                    FontSize="16"

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Algorithm;
 
@@ -31,68 +32,49 @@ public static class WinCalc
                 .Distinct()
                 .ToList();
 
-    // 是否能全部拆成顺，或一坎牌
-    // kiilii 可能存在问题
-    private static bool CanSplitIntoTriples(this List<MahjongTile> tiles, out bool allTriple3)
+
+    private static bool CanSplitIntoTriples( this List<MahjongTile> tiles, out bool allTriple3 )
     {
-        int tripleCount = 0;
+        allTriple3 = false;
+
+        // 确保能分成三组
+        if ( tiles.Count % 3 != 0 ) return false;
 
         // 统计每个数字出现的次数
-        var frequencyDict = new Dictionary<int, int>();
-        foreach (var tile in tiles)
+        var counts = new int[10];
+        foreach ( var t in tiles )
         {
-            if (frequencyDict.TryGetValue(tile.Number, out int value))
-            {
-                frequencyDict[tile.Number] = ++value;
-            }
-            else
-            {
-                frequencyDict[tile.Number] = 1;
-            }
+            counts[t.NumberSimple]++;
         }
 
-        // 检查 N、N+1、N+2 的组合
-        bool foundSHUN;
-        while (true)
+        int tripleCount = 0;
+        // 按顺序检查数字
+        for ( int i = 1; i <= 9; i++ )
         {
-            foundSHUN = false;
-            foreach (var kvp in frequencyDict)
+            while ( counts[i] > 0 )
             {
-                int num = kvp.Key;
-
-                if (kvp.Value != 0  
-                    && frequencyDict.ContainsKey(num + 1) && frequencyDict[num + 1] > 0
-                    && frequencyDict.ContainsKey(num + 2) && frequencyDict[num + 2] > 0)
+                // 尝试形成三组相同数字
+                if ( counts[i] >= 3 )
                 {
-                    foundSHUN = true;
-                    frequencyDict[num] -= 1;
-                    frequencyDict[num + 1] -= 1;
-                    frequencyDict[num + 2] -= 1;
+                    counts[i] -= 3;
+                    tripleCount += 3;
+                }
+                // 尝试形成顺子
+                else if ( i <= 7 && counts[i] > 0 && counts[i + 1] > 0 && counts[i + 2] > 0 )
+                {
+                    counts[i]--;
+                    counts[i + 1]--;
+                    counts[i + 2]--;
+                }
+                else
+                {
+                    return false;
                 }
             }
-            if (!foundSHUN) break;
         }
 
-        // 检查 NNN 组合，因为顺子已经移除，每个不同点数顺子最多1次
-        foreach (var kvp in frequencyDict)
-        {
-            int num = kvp.Key;
-            if (kvp.Value == 3)
-            {
-                frequencyDict[num] -= 3;
-                tripleCount++;
-            }
-        }
-
-        // 如果所有数字都可以被分成三个一组,则 frequencyDict 中所有值都应为 0
-        bool canSplitIntoTriples = frequencyDict.All(kvp => kvp.Value == 0);
-
-        // 检查是否全是 坎
-        allTriple3 = tripleCount == tiles.Count / 3;
-
-        if(canSplitIntoTriples)
-            Trace.WriteLine($"CanSplitIntoTriples: {tiles.Info()}");
-        return canSplitIntoTriples;
+        allTriple3 = tiles.Count == tripleCount;
+        return true;
     }
 
     // 判断是否暗7对
@@ -116,30 +98,43 @@ public static class WinCalc
     private static bool IsNormalWin( this List<MahjongTile> tiles, out bool isAllPairs )
     {
         isAllPairs = false;
-        // 在暗排里面计算，因为明牌肯定是碰杠出来的
         
-        // 找将
-        var hiddenTiles = tiles.GetHiddenTiles();
-        var jiangs = hiddenTiles.GetJiangs();
+        // 取暗牌，张数计算，因为明牌肯定是碰杠出来的
+        var hidden = tiles.GetHiddenTiles();
+        if ( hidden.Count != 2 && hidden.Count != 5 && hidden.Count != 8 && hidden.Count != 11 && hidden.Count != 14 )
+            return false;
 
-        //Trace.WriteLine("将：" + jiangs.Info());
+        // 2张一样直接true
+        if (hidden.Count == 2 && hidden[0].Equals( hidden[1] ) )
+            return true;
+
+        // 找将
+        var jiangs = hidden.GetJiangs();
+        //Console.WriteLine("可能的将：" + jiangs.Name());
+
         // 去掉将的牌，进行拆解
         foreach (var jiang in jiangs)
         {
             var tilesCopy = tiles.ToList();
             if (!tilesCopy.Remove(jiang)) return false;
             if (!tilesCopy.Remove(jiang)) return false; // 将牌是2个一样的
+            Console.Write( $"开始测试将牌 {jiang.Name()}：{tilesCopy.Name()}");
 
-            if (tilesCopy.CanSplitIntoTriples(out isAllPairs))
+            if ( tilesCopy.CanSplitIntoTriples(out isAllPairs))
             {
-                Trace.WriteLine($"{tilesCopy.Info()} 可以 ");
+                Console.WriteLine( $" 可以完全拆分 ");
                 return true;
             }
+            else
+            {
+                Console.WriteLine( $" 拆分失败 " );
+            }
         }
+
         return false;
     }
 
-    public static bool Calculate(this List<MahjongTile> tiles, out int score, out string detail)
+    public static bool Calculate(this List<MahjongTile> all, out int score, out string detail) // 是否胡牌计算
     {
         bool isDADUI = false;
         bool isQING = false;
@@ -148,7 +143,7 @@ public static class WinCalc
         bool is19 = false;
 
         // 是否打缺
-        if ( !tiles.IsQUE())
+        if ( !all.IsQUE() )
         {
             score = 0;
             detail = "没有打缺";
@@ -156,23 +151,22 @@ public static class WinCalc
         }
 
         // 判断是否清一色
-        if (tiles.TypeCount() == 1)
+        if ( all.TypeCount() == 1)
         {
             isQING = true;
         }
 
         // 判断7对
-        if ( tiles.Is7Pairs() )
+        if ( all.Is7Pairs() )
         {
             is7 = true;
             goto COUNT;
         }
 
         // 是否平胡
-        if( tiles.IsNormalWin(out isDADUI))
+        if( all.IsNormalWin(out isDADUI))
         {
             isNORMAL = true;
-            score = (int)ScoreType.NORMAL;
             goto COUNT;
         }
 
@@ -184,7 +178,7 @@ public static class WinCalc
         // 算分
         COUNT:
         score = (int) ScoreType.NORMAL;
-        int dragonCount = tiles.FourSetsCount();
+        int dragonCount = all.FourSetsCount();
         for (int i = 0; i < dragonCount; i++) { 
             score *= 2;
         }
@@ -202,5 +196,42 @@ public static class WinCalc
         Trace.WriteLine(detail);
         return true;
     }
+
+    public static List<MahjongTile> ListenTiles(this List<MahjongTile> tiles, out int canWinCount )
+    {
+        List<MahjongTile> canWin = []; // 花色
+        canWinCount = 0; // 张数
+
+        if ( !tiles.IsQUE() )
+            return canWin;
+
+        // 取暗牌，张数计算，因为明牌肯定是碰杠出来的
+        var hidden = tiles.GetHiddenTiles();
+        if ( hidden.Count != 1 && hidden.Count != 4 && hidden.Count != 7 && hidden.Count != 10 && hidden.Count != 13 )
+            return canWin;
+
+        // 创建副本用于计算，否则会影响
+        List<MahjongTile> tilesCopy = new( tiles );
+
+        // 计算
+        var connected = tilesCopy.GetConnectedTiles();
+        foreach ( var t in connected )
+        {
+            tilesCopy.Add( t );
+            if ( tilesCopy.Calculate( out _, out _ ) ) { canWin.Add( t ); }
+            tilesCopy.Remove( t );
+        }
+        Trace.WriteLine( "can win " + canWin.Name() );
+
+        // 计算剩余牌数
+        if(canWin.Count > 0 )
+        {
+            canWinCount = canWin.Count * 4;
+            canWinCount -= tiles.Count( t => canWin.Contains( t ) );
+        }
+
+        return canWin;
+    }
+
 
 }

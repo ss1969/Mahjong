@@ -32,15 +32,15 @@ public partial class ViewModel : ObservableObject
     [ObservableProperty]
     private int tiaoCount = 5; 
     [ObservableProperty]
-    private string totalTiles = "总13 张";
+    private int totalTiles = 13;
 
     [ObservableProperty]
     private string canWinTiles = "听牌：";
     
 
-    partial void OnWanCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
-    partial void OnTongCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
-    partial void OnTiaoCountChanged(int value) => TotalTiles = $"总{WanCount + TongCount + TiaoCount} 张";
+    partial void OnWanCountChanged(int value) => TotalTiles = WanCount + TongCount + TiaoCount;
+    partial void OnTongCountChanged(int value) => TotalTiles = WanCount + TongCount + TiaoCount;
+    partial void OnTiaoCountChanged(int value) => TotalTiles = WanCount + TongCount + TiaoCount;
 
     #endregion
 
@@ -113,30 +113,13 @@ public partial class ViewModel : ObservableObject
 
     private void CalculateTilesToWin()
     {
-        if (!_handTile.Tiles.IsQUE())
-            return;
-
-        // 创建副本用于计算，否则会影响到Swipe
-        List<MahjongTile> tilesCopy = new(_handTile.Tiles); 
-        
-        // 计算
-        List<MahjongTile> canWin = []; // 花色
-        int canWinCount = 0; // 张数
-        var connected = tilesCopy.GetConnectedTiles();
-        foreach (var t in connected)
-        {
-            tilesCopy.Add(t);
-            if(tilesCopy.Calculate(out _, out _)) {  canWin.Add(t); }
-            tilesCopy.Remove(t);
-        }
-        Trace.WriteLine("can win " + canWin.Info());
-
-        // 计算剩余牌数
-        canWinCount = canWin.Count * 4;
-        canWinCount -= _handTile.Tiles.Count(t => canWin.Contains(t));
+        var canWin = _handTile.Tiles.ListenTiles(out int canWinCount );
 
         // 输出
-        CanWinTiles = $"听牌：{canWin.Info()}, 共 {canWin.Count} 类 {canWinCount} 张";
+        if( canWin.Count > 0)
+            CanWinTiles = $"听牌：{canWin.Name()}, 共 {canWin.Count} 类 {canWinCount} 张";
+        else
+            CanWinTiles = "未听牌";
     }
 
 private static void VibrateDevice()
@@ -221,6 +204,7 @@ private static void VibrateDevice()
             tong = int.Parse(p[0]); // never fail because parameter is in .xaml
             tiao = int.Parse(p[1]);
             wan = int.Parse(p[2]);
+            TotalTiles = tong + tiao + wan;
             _deck.DrawTile(ref _handTile, tong, tiao, wan);
         }
         else
@@ -240,10 +224,11 @@ private static void VibrateDevice()
     {
         VibrateDevice();
 
-        int count = Int32.Parse(countStr);
+        TotalTiles = Int32.Parse(countStr);
+
         _deck.Initialize();
         _handTile.Clear();
-        _deck.DrawTile(ref _handTile, count);
+        _deck.DrawTile(ref _handTile, TotalTiles );
         _handTile.Sort();
         UpdateHandtileToGrid(_handTile, TilesOne);
         CalculateTileValue();

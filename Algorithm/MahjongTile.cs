@@ -30,9 +30,9 @@ public enum TileType
 public static class MahjongTileHelper
 {
     // 打印输出
-    public static string Info(this List<MahjongTile> tiles)
+    public static string Name(this List<MahjongTile> tiles)
         //=> $"[{ string.Join(",", tiles.Select(t => $"{t.Number:X2}")) }]";
-        => string.Join(",", tiles.Select(t=>t.Number.GetName()));
+        => string.Join(",", tiles.Select(t=>t.Name()));
 
     // 排序
     public static void Sort(this List<MahjongTile> tiles)
@@ -43,18 +43,6 @@ public static class MahjongTileHelper
         }
 
         tiles.Sort(new MahjongTileComparer());
-    }
-
-    // 数字得到牌名
-    public static string GetName(this int number)
-    {
-        string name = number switch
-        {
-            _ when number < 0x1A => "筒",
-            _ when number > 0x40 => "万",
-            _  => "条",
-        };
-        return (number & 0xF).ToString() + name;
     }
 
     // 是否某种花色
@@ -129,8 +117,6 @@ public static class MahjongTileHelper
 
         return result;
     }
-
-
 }
 
 public class MahjongTile(int number)
@@ -152,6 +138,18 @@ public class MahjongTile(int number)
 
     // 简易值，只有1-9
     public int NumberSimple => number & 0xF;
+
+    // 牌名
+    public string Name()
+    {
+        string name = number switch
+        {
+            _ when number < 0x1A => "筒",
+            _ when number > 0x40 => "万",
+            _ => "条",
+        };
+        return ( number & 0xF ).ToString() + name;
+    }
 
     // 是否翻开的牌
     public bool Open { get; set; } = false;

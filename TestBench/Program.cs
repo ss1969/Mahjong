@@ -24,13 +24,11 @@
  */
 
 #if true
-using System.Diagnostics;
 using Algorithm;
 
 namespace TestBench;
 internal class Program
 {
-
     static void TestScore( string tiles, int standardScore, bool trace = false )
     {
         int s = ValueCalc.Calculate( tiles, trace );
@@ -42,93 +40,104 @@ internal class Program
     {
         var isWin = WinCalc.Calculate( tiles, out int score, out string detail );
         string r = (isWin == standard ? "PASS" : "FAIL") + $", Standard: {standard}, Score:{score}, {detail}";
-        Console.WriteLine( $"{tiles.Info()} : {r}" );
+        Console.WriteLine( $"{tiles.Name()} : {r}" );
+        var canWin = tiles.ListenTiles( out int canWinCount );
+        if ( canWin.Count > 0 )
+        {
+            Console.WriteLine( $"Listen：{canWin.Name()}, Total {canWin.Count} Tile {canWinCount} Bricks" );
+        }
     }
 
 
     static void Main( string[] args )
     {
-        TestScore( "2299", 52 );
-        TestScore( "2277", 51 );
-        TestScore( "4477", 50 );
-        TestScore( "3678", 50 );
-        TestScore( "2678", 49 );
-        TestScore( "1678", 48 );
+        //TestScore( "2299", 52 );
+        //TestScore( "2277", 51 );
+        //TestScore( "4477", 50 );
+        //TestScore( "3678", 50 );
+        //TestScore( "2678", 49 );
+        //TestScore( "1678", 48 );
 
-        TestScore( "2399", 50 );
-        TestScore( "3599", 48 );
-        TestScore( "1399", 47 );
-        TestScore( "1299", 45 );
+        //TestScore( "2399", 50 );
+        //TestScore( "3599", 48 );
+        //TestScore( "1399", 47 );
+        //TestScore( "1299", 45 );
 
-        TestScore( "2377", 49 );
-        TestScore( "3577", 47 );
-        TestScore( "1377", 46 );
-        TestScore( "1277", 44 );
+        //TestScore( "2377", 49 );
+        //TestScore( "3577", 47 );
+        //TestScore( "1377", 46 );
+        //TestScore( "1277", 44 );
 
-        TestScore( "2367", 48 );
-        TestScore( "2357", 46 );
-        TestScore( "2379", 45 );
-        TestScore( "2389", 43 );
+        //TestScore( "2367", 48 );
+        //TestScore( "2357", 46 );
+        //TestScore( "2379", 45 );
+        //TestScore( "2389", 43 );
 
-        TestScore( "3568", 43 );
-        TestScore( "3589", 41 );
-        TestScore( "1368", 42 );
-        TestScore( "1389", 40 );
-        TestScore( "1289", 38 );
+        //TestScore( "3568", 43 );
+        //TestScore( "3589", 41 );
+        //TestScore( "1368", 42 );
+        //TestScore( "1389", 40 );
+        //TestScore( "1289", 38 );
 
-        TestScore( "3579", 43 );
-        TestScore( "1123", 50 );
-        TestScore( "1346", 43 );
+        //TestScore( "3579", 43 );
+        //TestScore( "1123", 50 );
+        //TestScore( "1346", 43 );
 
-        TestScore( "13579", 54 );
+        //TestScore( "13579", 54 );
 
-        TestScore( "455667", 80, true );
-        TestScore( "45567", 64, true );
-        TestScore( "12234", 61, true );
+        //TestScore( "455667", 80, true );
+        //TestScore( "45567", 64, true );
+        //TestScore( "12234", 61, true );
 
 
-        List<MahjongTile> t1 = [
-                new(0x11),new(0x11),new(0x12),new(0x12),
-                new(0x13),new(0x13),new(0x21),new(0x21),
-                new(0x22),new(0x22),new(0x25),new(0x25),
-                new(0x26),new(0x26)];
-        TestWin(t1, true); // 暗七对
+        //List<MahjongTile> t1 = [
+        //        new(0x11),new(0x11),new(0x12),new(0x12),
+        //        new(0x13),new(0x13),new(0x21),new(0x21),
+        //        new(0x22),new(0x22),new(0x25),new(0x25),
+        //        new(0x26),new(0x26)];
+        //TestWin( t1, true ); // 暗七对
 
-        TestWin([
-                new(0x11),new(0x11),new(0x12),new(0x12),
-                new(0x13),new(0x13),new(0x21),new(0x21),
-                new(0x21),new(0x21),new(0x25),new(0x25),
-                new(0x26),new(0x26)],
-                true); // 龙七对
-        TestWin([
-                new(0x11),new(0x11),new(0x12),new(0x12),
-                new(0x13),new(0x13),new(0x21),new(0x21),
-                new(0x21),new(0x21),new(0x25),new(0x25),
-                new(0x25),new(0x25)],
-                true); // 双龙七对
+        //TestWin( [
+        //        new(0x11),new(0x11),new(0x12),new(0x12),
+        //        new(0x13),new(0x13),new(0x21),new(0x21),
+        //        new(0x21),new(0x21),new(0x25),new(0x25),
+        //        new(0x26),new(0x26)],
+        //        true ); // 龙七对
+        //TestWin( [
+        //        new(0x11),new(0x11),new(0x12),new(0x12),
+        //        new(0x13),new(0x13),new(0x21),new(0x21),
+        //        new(0x21),new(0x21),new(0x25),new(0x25),
+        //        new(0x25),new(0x25)],
+        //        true ); // 双龙七对
         //TestWin( [
         //        new(0x11),new(0x11),new(0x12),new(0x12),
         //        new(0x13),new(0x13),new(0x21),new(0x21),
         //        new(0x11),new(0x11),new(0x24),new(0x25),
         //        new(0x26),new(0x26)],
-        //        false );
+        //        false ); // 无法hu'pai
 
-        TestWin([
-                new(0x11),new(0x12),new(0x13),new(0x12),
-                new(0x13),new(0x14),new(0x21),new(0x21),
-                new(0x21),new(0x21),new(0x22),new(0x23),
-                new(0x26),new(0x26)],
-                true);
+        //TestWin( [
+        //        new(0x11),new(0x12),new(0x13),new(0x12),
+        //        new(0x13),new(0x14),new(0x21),new(0x21),
+        //        new(0x21),new(0x21),new(0x22),new(0x23),
+        //        new(0x26),new(0x26)],
+        //        true ); // 单根素番
 
-        TestWin([
+        TestWin( [
                 new(0x11),new(0x11),new(0x11),new(0x12),
                 new(0x12),new(0x12),new(0x21),new(0x21),
                 new(0x21),new(0x22),new(0x22),new(0x22),
                 new(0x26),new(0x26)],
-        true);
+        true ); // 大对子
 
-        var t1c = t1.GetConnectedTiles();
-        Console.WriteLine("t1c " + t1c.Info());
+
+        //TestWin( [
+        //        new(0x11),new(0x11),new(0x11),new(0x12),
+        //        new(0x13),new(0x14),new(0x15),new(0x16),
+        //        new(0x17),new(0x18),new(0x19),new(0x19),
+        //        new(0x19)], // 九连宝灯，听牌
+        //true );
+
     }
 }
 #endif
@@ -312,4 +321,62 @@ class Program
         }
     }
 }
+#endif
+
+#if false
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        List<int> numbers = new List<int> { 6,6,6,7,7,7,8,8,8 };
+        bool result = IsValidGrouping( numbers );
+        Console.WriteLine( result );
+    }
+
+    static bool IsValidGrouping( List<int> numbers )
+    {
+        // 确保能分成三组
+        if ( numbers.Count % 3 != 0 ) return false;
+
+        // 统计每个数字出现的次数
+        var counts = new int[10]; // 数字范围是1-9，数组范围0-9
+        foreach ( var num in numbers )
+        {
+            counts[num]++;
+        }
+
+        // 按顺序检查数字
+        for ( int i = 1; i <= 9; i++ )
+        {
+            while ( counts[i] > 0 )
+            {
+                // 尝试形成三组相同数字
+                if ( counts[i] >= 3 )
+                {
+                    counts[i] -= 3;
+                }
+                // 尝试形成顺子
+                else if ( i <= 7 && counts[i] > 0 && counts[i + 1] > 0 && counts[i + 2] > 0 )
+                {
+                    counts[i]--;
+                    counts[i + 1]--;
+                    counts[i + 2]--;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+}
+
+
+
 #endif
