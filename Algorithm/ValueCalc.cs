@@ -115,7 +115,7 @@ public static class ValueCalc
         if (tiles.Count == 0)
             return 0;
 
-        if ( tiles.TypeCount() != 1 )
+        if ( tiles.CountType() != 1 )
         {
             throw new InvalidDataException("Tile pack has more than 1 type");
         }

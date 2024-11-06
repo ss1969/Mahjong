@@ -53,7 +53,7 @@ public static class MahjongTileHelper
         => Math.Abs(tile1.Number - tile2.Number) < 10;
 
     // 统计花色
-    public static int TypeCount( this List<MahjongTile> tiles )
+    public static int CountType( this List<MahjongTile> tiles )
     {
         int sum = 0;
         foreach ( var t in tiles )
@@ -71,29 +71,34 @@ public static class MahjongTileHelper
     }
 
     // 获取某具体牌数量
-    public static int GetSpecificCount(this List<MahjongTile> tiles, int tileNumber)
+    public static int CountSpecific(this List<MahjongTile> tiles, int tileNumber)
         => tiles.Where(t => t.Number == tileNumber).Count();
 
 
     // 获取明牌数量
-    public static int OpenCount(this List<MahjongTile> tiles )
+    public static int CountOpenTile(this List<MahjongTile> tiles )
         => tiles.Where(t => t.Open).Count();
 
     // 统计4张数量
-    private static int SetsCount(this List<MahjongTile> tiles, int n) 
+    private static int CountSame(this List<MahjongTile> tiles, int n) 
         => tiles.GroupBy(t => t.Number)
                 .Count(g => g.Count() == n);
 
-    public static int FourSetsCount(this List<MahjongTile> tiles) 
-        => SetsCount(tiles, 4);
-    public static int ThreeSetsCount(this List<MahjongTile> tiles) 
-        => SetsCount(tiles, 3);
+    public static int CountSame4(this List<MahjongTile> tiles) 
+        => CountSame(tiles, 4);
+    public static int CountSame3(this List<MahjongTile> tiles) 
+        => CountSame(tiles, 3);
 
     // 获取明牌暗牌
     public static List<MahjongTile> GetOpenTiles( this List<MahjongTile> tiles ) 
         => tiles.Where( t => t.Open ).ToList();
     public static List<MahjongTile> GetHiddenTiles( this List<MahjongTile> tiles ) 
         => tiles.Where( t => !t.Open ).ToList();
+
+    // 获取某类牌
+    public static List<MahjongTile> GetTilesByType(this List<MahjongTile> tiles, TileType type)
+        => tiles.Where(t => t.IsType(type))
+                .ToList();
 
     // 获取关联牌（相差不超过1）
     public static List<MahjongTile> GetConnectedTiles(this List<MahjongTile> tiles)

@@ -46,12 +46,7 @@ public partial class MahjongHand : ObservableObject
         Images[index] = UI.TileImage(newOne);
     }
     
-    
-    public List<MahjongTile> GetTilesByType(TileType type) 
-        => Tiles.Where(t => t.IsType(type) )
-                .ToList();
-
-    public int GetScoreByType(TileType type) => GetTilesByType(type).Calculate();
+    public int GetScoreByType(TileType type) => Tiles.GetTilesByType(type).Calculate();
 
     public void Sort()
     {
@@ -80,7 +75,7 @@ public partial class MahjongHand : ObservableObject
         }
 
         // 已经有4个牌了（ kiilii 算法有问题，不是很好，不能直接跳过 ）
-        if (Tiles.GetSpecificCount(newValue) == 4) return;
+        if (Tiles.CountSpecific(newValue) == 4) return;
 
         ChangeTile(index, new(newValue));
     }

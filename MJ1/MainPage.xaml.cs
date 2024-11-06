@@ -107,7 +107,7 @@ public partial class ViewModel : ObservableObject
     private void CalculateTilesCanWin() // 计算胡牌，不管张数
     {
         var win = _handTile.Tiles.Calculate(out int score, out string detail);
-        WinLabel = win ? $"WIN {score} {detail}" : $"NO {detail}";
+        WinLabel = win ? $"WIN {score}分 {detail}" : $"NO {detail}";
         WinLabelColor = win ? Colors.Red : Colors.Green;
     }
 
