@@ -46,6 +46,10 @@ internal class Program
         {
             Console.WriteLine( $"Listen：{canWin.Name()}, Total {canWin.Count} Tile {canWinCount} Bricks" );
         }
+        else
+        {
+            Console.WriteLine("No Listen");
+        }
     }
 
 
@@ -97,6 +101,13 @@ internal class Program
         //        new(0x26),new(0x26)];
         //TestWin( t1, true ); // 暗七对
 
+        List<MahjongTile> t1 = [
+                new(0x11),new(0x11),new(0x12),new(0x12),
+                new(0x13),new(0x13),new(0x21),new(0x21),
+                new(0x22),new(0x22),new(0x25),new(0x25),
+                new(0x26)];
+        TestWin(t1, true); // 暗七对
+
         //TestWin( [
         //        new(0x11),new(0x11),new(0x12),new(0x12),
         //        new(0x13),new(0x13),new(0x21),new(0x21),
@@ -123,12 +134,12 @@ internal class Program
         //        new(0x26),new(0x26)],
         //        true ); // 单根素番
 
-        TestWin( [
-                new(0x11),new(0x11),new(0x11),new(0x12),
-                new(0x12),new(0x12),new(0x21),new(0x21),
-                new(0x21),new(0x22),new(0x22),new(0x22),
-                new(0x26),new(0x26)],
-        true ); // 大对子
+        //TestWin( [
+        //        new(0x11),new(0x11),new(0x11),new(0x12),
+        //        new(0x12),new(0x12),new(0x21),new(0x21),
+        //        new(0x21),new(0x22),new(0x22),new(0x22),
+        //        new(0x26),new(0x26)],
+        //true ); // 大对子
 
 
         //TestWin( [

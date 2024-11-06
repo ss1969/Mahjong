@@ -178,6 +178,7 @@ public static class WinCalc
         // 判断7对
         if ( all.Is7Pairs() )
         {
+            if (DEBUG) Trace.WriteLine("暗骑对");
             is7 = true;
             goto COUNT;
         }
@@ -241,6 +242,8 @@ public static class WinCalc
         foreach ( var t in connected )
         {
             tilesCopy.Add( t );
+            tilesCopy.Sort(new MahjongTileComparer());
+            MahjongTileHelper.Sort(tilesCopy); 
             if (DEBUG) Trace.WriteLine($"加入 {t.Name()} 计算：");
             if ( tilesCopy.Calculate( out _, out _ ) ) { canWin.Add( t ); }
             tilesCopy.Remove( t );
