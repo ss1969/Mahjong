@@ -20,11 +20,18 @@ public class MahjongTileComparer : IComparer<MahjongTile>
     }
 }
 
-public enum TileType
+public enum TILE_TYPE
 {
     Tong = 0x10,
     Tiao = 0x20,
     Wan = 0x40,
+}
+
+public enum TILE_STATUS // 暗牌，选中，翻开的牌
+{
+    HIDDEN,
+    SELECTED,
+    OPEN
 }
 
 public static class MahjongTileHelper
@@ -32,7 +39,7 @@ public static class MahjongTileHelper
     // 打印输出
     public static string Name(this List<MahjongTile> tiles)
         //=> $"[{ string.Join(",", tiles.Select(t => $"{t.Number:X2}")) }]";
-        => string.Join(",", tiles.Select(t=>t.Name()));
+        => string.Join(",", tiles.Select(t=>t.Name));
 
     // 排序
     public static void Sort(this List<MahjongTile> tiles)
@@ -46,7 +53,7 @@ public static class MahjongTileHelper
     }
 
     // 是否某种花色
-    public static bool IsType( this MahjongTile tile, TileType type ) => ( tile.Number & (int)type ) > 0;
+    public static bool IsType( this MahjongTile tile, TILE_TYPE type ) => ( tile.Number & (int)type ) > 0;
 
     // 同花色
     public static bool IsSameType( this MahjongTile tile1, MahjongTile tile2 ) 
@@ -74,11 +81,6 @@ public static class MahjongTileHelper
     public static int CountSpecific(this List<MahjongTile> tiles, int tileNumber)
         => tiles.Where(t => t.Number == tileNumber).Count();
 
-
-    // 获取明牌数量
-    public static int CountOpenTile(this List<MahjongTile> tiles )
-        => tiles.Where(t => t.Open).Count();
-
     // 统计4张数量
     private static int CountSame(this List<MahjongTile> tiles, int n) 
         => tiles.GroupBy(t => t.Number)
@@ -91,12 +93,16 @@ public static class MahjongTileHelper
 
     // 获取明牌暗牌
     public static List<MahjongTile> GetOpenTiles( this List<MahjongTile> tiles ) 
-        => tiles.Where( t => t.Open ).ToList();
+        => tiles.Where( t => t.Status == TILE_STATUS.OPEN ).ToList();
+    public static int CountOpenTile(this List<MahjongTile> tiles )
+        => tiles.Where(t => t.Status == TILE_STATUS.OPEN).Count();
     public static List<MahjongTile> GetHiddenTiles( this List<MahjongTile> tiles ) 
-        => tiles.Where( t => !t.Open ).ToList();
+        => tiles.Where( t => t.Status == TILE_STATUS.HIDDEN ).ToList();
+    public static int CountHiddenTile( this List<MahjongTile> tiles )
+        => tiles.Where( t => t.Status == TILE_STATUS.HIDDEN ).Count();
 
     // 获取某类牌
-    public static List<MahjongTile> GetTilesByType(this List<MahjongTile> tiles, TileType type)
+    public static List<MahjongTile> GetTilesByType(this List<MahjongTile> tiles, TILE_TYPE type)
         => tiles.Where(t => t.IsType(type))
                 .ToList();
 
@@ -126,11 +132,11 @@ public static class MahjongTileHelper
 
 public class MahjongTile(int number)
 {
+    #region Properties
     public int Index { get; set; } = -1; //位于一副牌中的位置
 
-    private int number = number;
-
     // 完整值
+    private int number = number;
     public int Number { 
         get => number; 
         set {
@@ -141,23 +147,39 @@ public class MahjongTile(int number)
         } 
     }
 
+    // 状态
+    public TILE_STATUS Status { get; set; } = TILE_STATUS.HIDDEN;
+
     // 简易值，只有1-9
     public int NumberSimple => number & 0xF;
 
     // 牌名
-    public string Name()
+    public string Name
     {
-        string name = number switch
-        {
-            _ when number < 0x1A => "筒",
-            _ when number > 0x40 => "万",
-            _ => "条",
-        };
-        return ( number & 0xF ).ToString() + name;
+        get { 
+            string name = number switch
+            {
+                _ when number < 0x1A => "筒",
+                _ when number > 0x40 => "万",
+                _ => "条",
+            };
+            return ( number & 0xF ).ToString() + name;
+        }
+    }
+    #endregion
+
+    // 选中、取消 (仅限暗牌)
+    public void Select()
+    {
+        if(Status == TILE_STATUS.HIDDEN) Status = TILE_STATUS.SELECTED;
+        if(Status == TILE_STATUS.SELECTED) Status = TILE_STATUS.HIDDEN;
     }
 
-    // 是否翻开的牌
-    public bool Open { get; set; } = false;
+    // 明一张牌
+    public void Open()
+    {
+        if(Status != TILE_STATUS.OPEN) Status = TILE_STATUS.OPEN;
+    }
 
     // Override
     public override string ToString() => $"[{number:X2}]";

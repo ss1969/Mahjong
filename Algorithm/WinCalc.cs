@@ -22,7 +22,6 @@ public enum ScoreType
 
 public static class WinCalc
 {
-    static bool DEBUG = true;
     // 是否打缺
     public static bool IsQUE( this List<MahjongTile> tiles ) => tiles.CountType() <= 2;
 
@@ -126,7 +125,9 @@ public static class WinCalc
 
         // 找将
         var jiangs = hidden.GetJiangs();
-        if (DEBUG) Trace.WriteLine("可能的将：" + jiangs.Name());
+#if DEBUG
+        Trace.WriteLine("可能的将：" + jiangs!.Name());
+#endif
 
         // 去掉将的牌，进行拆解
         foreach (var jiang in jiangs)
@@ -134,20 +135,25 @@ public static class WinCalc
             var tilesCopy = tiles.ToList();
             if (!tilesCopy.Remove(jiang)) return false;
             if (!tilesCopy.Remove(jiang)) return false; // 将牌是2个一样的
-            if (DEBUG) Trace.Write( $"开始测试将牌 {jiang.Name()}：{tilesCopy.Name()}");
-
-            if ( tilesCopy.GetTilesByType(TileType.Tong).CanSplitIntoTriples(out bool isAllPairs1, out bool is191)
-                && tilesCopy.GetTilesByType(TileType.Tiao).CanSplitIntoTriples(out bool isAllPairs2, out bool is192)
-                && tilesCopy.GetTilesByType(TileType.Wan).CanSplitIntoTriples(out bool isAllPairs3, out bool is193))
+#if DEBUG
+            Trace.Write( $"开始测试将牌 {jiang.Name}：{tilesCopy.Name}");
+#endif
+            if ( tilesCopy.GetTilesByType(TILE_TYPE.Tong).CanSplitIntoTriples(out bool isAllPairs1, out bool is191)
+                && tilesCopy.GetTilesByType(TILE_TYPE.Tiao).CanSplitIntoTriples(out bool isAllPairs2, out bool is192)
+                && tilesCopy.GetTilesByType(TILE_TYPE.Wan).CanSplitIntoTriples(out bool isAllPairs3, out bool is193))
             {
-                if (DEBUG) Trace.WriteLine( $" 可以完全拆分 ");
+#if DEBUG
+                Trace.WriteLine( $" 可以完全拆分 ");
+#endif
                 isAllPairs = isAllPairs1 && isAllPairs2 && isAllPairs3;
                 is19 = (jiang.NumberSimple == 1 || jiang.NumberSimple == 9) && is191 && is192 && is193;
                 return true;
             }
             else
             {
-                if (DEBUG) Trace.WriteLine( $" 拆分失败 " );
+#if DEBUG
+                Trace.WriteLine( $" 拆分失败 " );
+#endif
             }
         }
 
@@ -178,7 +184,9 @@ public static class WinCalc
         // 判断7对
         if ( all.Is7Pairs() )
         {
-            if (DEBUG) Trace.WriteLine("暗骑对");
+#if DEBUG
+#endif
+            Trace.WriteLine("暗骑对");
             is7 = true;
             goto COUNT;
         }
@@ -216,7 +224,9 @@ public static class WinCalc
         detail = detail == "" ? "素番" : detail;
         detail = $"{detail},杠{dragonCount}个";
 
-        if (DEBUG) Trace.WriteLine(detail);
+#if DEBUG
+#endif
+        Trace.WriteLine(detail);
         return true;
     }
 
@@ -235,7 +245,9 @@ public static class WinCalc
 
         // 创建副本用于计算，否则会影响
         List<MahjongTile> tilesCopy = new( tiles );
-        if (DEBUG) Trace.WriteLine($"开始计算听牌 {tilesCopy.Name()}");
+#if DEBUG
+#endif
+        Trace.WriteLine($"开始计算听牌 {tilesCopy.Name}");
 
         // 计算
         var connected = tilesCopy.GetConnectedTiles();
@@ -243,12 +255,17 @@ public static class WinCalc
         {
             tilesCopy.Add( t );
             tilesCopy.Sort(new MahjongTileComparer());
-            MahjongTileHelper.Sort(tilesCopy); 
-            if (DEBUG) Trace.WriteLine($"加入 {t.Name()} 计算：");
+            MahjongTileHelper.Sort(tilesCopy);
+#if DEBUG
+#endif
+            Trace.WriteLine($"加入 {t.Name} 计算：");
             if ( tilesCopy.Calculate( out _, out _ ) ) { canWin.Add( t ); }
             tilesCopy.Remove( t );
         }
-        if (DEBUG) Trace.WriteLine( "听牌：" + canWin.Name() );
+
+#if DEBUG
+#endif
+        Trace.WriteLine( "听牌：" + canWin.Name );
 
         // 计算剩余牌数
         if(canWin.Count > 0 )

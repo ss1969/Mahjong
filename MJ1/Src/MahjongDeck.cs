@@ -48,7 +48,7 @@ public class MahjongDeck
     public MahjongHand DrawTile(ref MahjongHand dest, int tongCount, int tiaoCount, int wanCount)
     {
         // Helper function to draw tiles of a specific type
-        List<MahjongTile> DrawSpecificTiles(TileType type, int count)
+        List<MahjongTile> DrawSpecificTiles(TILE_TYPE type, int count)
         {
             var tilesOfType = tiles.Where( t => t.IsType( type ) ).OrderBy(t => random.Next()).Take(count).ToList();
             if (tilesOfType.Count < count)
@@ -60,9 +60,9 @@ public class MahjongDeck
 
         try
         {
-            var wanTiles = DrawSpecificTiles(TileType.Wan, wanCount);
-            var tongTiles = DrawSpecificTiles(TileType.Tong, tongCount);
-            var tiaoTiles = DrawSpecificTiles(TileType.Tiao, tiaoCount);
+            var wanTiles = DrawSpecificTiles(TILE_TYPE.Wan, wanCount);
+            var tongTiles = DrawSpecificTiles(TILE_TYPE.Tong, tongCount);
+            var tiaoTiles = DrawSpecificTiles(TILE_TYPE.Tiao, tiaoCount);
 
             // Add drawn tiles to the destination hand and remove them from the deck
             foreach (var tile in wanTiles.Concat(tongTiles).Concat(tiaoTiles))

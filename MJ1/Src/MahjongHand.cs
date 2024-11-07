@@ -7,11 +7,14 @@ namespace MJ1;
 
 public partial class MahjongHand : ObservableObject
 {
+    #region Properties
     [ObservableProperty]
-
     private ObservableCollection<ImageSource> images = [];
+
     public List<MahjongTile> Tiles { get; private set; } = [];
+
     public int Count => Tiles.Count;
+    #endregion
 
     public void SetWhole(List<MahjongTile> init)
     {
@@ -46,7 +49,7 @@ public partial class MahjongHand : ObservableObject
         Images[index] = UI.TileImage(newOne);
     }
     
-    public int GetScoreByType(TileType type) => Tiles.GetTilesByType(type).Calculate();
+    public int GetScoreByType(TILE_TYPE type) => Tiles.GetTilesByType(type).Calculate();
 
     public void Sort()
     {
@@ -56,6 +59,8 @@ public partial class MahjongHand : ObservableObject
 
     public void Modify1(int index, bool minus)    // 修改一个手牌中某一张
     {
+        if ( index >= Tiles.Count ) return;
+
         var t = Tiles[index];
         int newValue;
 
@@ -80,5 +85,11 @@ public partial class MahjongHand : ObservableObject
         ChangeTile(index, new(newValue));
     }
 
-    public override string ToString() => Tiles.Name();
+    public void Select1(int index)
+    {
+        if (index >= Tiles.Count) return;
+        Tiles[index].Select();
+    }
+    
+    public bool IsSelected(int index) => Tiles[index].Status == TILE_STATUS.SELECTED;
 }

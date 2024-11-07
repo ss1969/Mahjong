@@ -40,11 +40,11 @@ internal class Program
     {
         var isWin = WinCalc.Calculate( tiles, out int score, out string detail );
         string r = (isWin == standard ? "PASS" : "FAIL") + $", Standard: {standard}, Score:{score}, {detail}";
-        Console.WriteLine( $"{tiles.Name()} : {r}" );
+        Console.WriteLine( $"{tiles.Name} : {r}" );
         var canWin = tiles.ListenTiles( out int canWinCount );
         if ( canWin.Count > 0 )
         {
-            Console.WriteLine( $"Listen：{canWin.Name()}, Total {canWin.Count} Tile {canWinCount} Bricks" );
+            Console.WriteLine( $"Listen：{canWin.Name}, Total {canWin.Count} Tile {canWinCount} Bricks" );
         }
         else
         {

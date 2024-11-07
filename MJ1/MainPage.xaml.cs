@@ -84,9 +84,9 @@ public partial class ViewModel : ObservableObject
 
     private void CalculateTileValue()
     {
-        var s1 = _handTile.GetScoreByType(TileType.Tong);
-        var s2 = _handTile.GetScoreByType(TileType.Tiao);
-        var s3 = _handTile.GetScoreByType(TileType.Wan);
+        var s1 = _handTile.GetScoreByType(TILE_TYPE.Tong);
+        var s2 = _handTile.GetScoreByType(TILE_TYPE.Tiao);
+        var s3 = _handTile.GetScoreByType(TILE_TYPE.Wan);
         FindMaxMin(s1, s2, s3, out int max, out int min);
 
         ScoreLabel1 = $"筒: {s1}";
@@ -117,7 +117,7 @@ public partial class ViewModel : ObservableObject
 
         // 输出
         if( canWin.Count > 0)
-            CanWinTiles = $"听牌：{canWin.Name()}, 共 {canWin.Count} 类 {canWinCount} 张";
+            CanWinTiles = $"听牌：{canWin.Name}, 共 {canWin.Count} 类 {canWinCount} 张";
         else
             CanWinTiles = "未听牌";
     }
@@ -133,6 +133,7 @@ private static void VibrateDevice()
     
     private void UpdateHandtileToGrid(MahjongHand hand, Grid grid)
     {
+        int SELECT_MOVE_UP_POINT = 40;
         grid.ColumnDefinitions.Clear();
         grid.Children.Clear();
         int tileCount = hand.Tiles.Count;
@@ -141,11 +142,14 @@ private static void VibrateDevice()
         for (int i = 0; i < tileCount; i++)
         {
             grid.ColumnDefinitions.Add(new (){ Width = GridLength.Auto });
-            var back = new Image{ Source = UI.Back1 };
-            var image = new Image{ Source = hand.Images[i], 
-                                        Margin = new (0,12,12,0) };
+            var back = new Image { Source = UI.Back1, 
+                                        HeightRequest = 70,
+                                        Margin = new (0, SELECT_MOVE_UP_POINT, 0,0) };
+            var image = new Image{ Source = hand.Images[i],
+                                        HeightRequest = 70,
+                                        Margin = new (0, SELECT_MOVE_UP_POINT+12, 12,0) };
 
-            // 添加手势
+            // 添加Swipe手势
             int index = i;
             var swipeUp = new SwipeGestureRecognizer{ 
                 Direction = SwipeDirection.Up,
@@ -156,7 +160,7 @@ private static void VibrateDevice()
                 VibrateDevice();
                 _handTile.Modify1(index, true);
                 _handTile.Sort();
-                UpdateHandtileToGrid(_handTile, TilesOne);
+                UpdateHandtileToGrid(_handTile, grid );
                 CalculateTileValue();
                 CalculateTilesCanWin();
                 CalculateTilesToWin();
@@ -171,16 +175,45 @@ private static void VibrateDevice()
                 VibrateDevice();
                 _handTile.Modify1(index, false);
                 _handTile.Sort();
-                UpdateHandtileToGrid(_handTile, TilesOne);
+                UpdateHandtileToGrid(_handTile, grid );
                 CalculateTileValue();
                 CalculateTilesCanWin();
                 CalculateTilesToWin();
             };
 
-            image.GestureRecognizers.Add(swipeUp);
-            image.GestureRecognizers.Add(swipeDown);
+            // 添加Tap手势
+            var tap = new TapGestureRecognizer
+            {
+                NumberOfTapsRequired = 1,
+            };
+            tap.Tapped += ( sender, e ) =>
+            {
+#if DEBUG
+                Trace.WriteLine($"Tapped #{index}");
+#endif
+                VibrateDevice();
+                _handTile.Select1( index );
+                foreach ( var child in grid.Children )
+                {
+                    if ( child is Image image && Grid.GetColumn( image ) == index )
+                    {
+                        if(image.Source == UI.Back1 )
+                            image.Margin = new Thickness(0, (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT ), 0, 0);
+                        else
+                            image.Margin = new Thickness( 0, 12 + ( hand.IsSelected( index ) ? 0 : SELECT_MOVE_UP_POINT ), 12, 0 );
+                    }
+                }
+
+                CalculateTileValue();
+                CalculateTilesCanWin();
+                CalculateTilesToWin();
+            };
 
             // 加入Grid
+            image.GestureRecognizers.Add( swipeUp );
+            image.GestureRecognizers.Add( swipeDown );
+            image.GestureRecognizers.Add( tap );
+
             grid.Children.Add(back);
             grid.Children.Add(image);
             Grid.SetColumn(back, i);
