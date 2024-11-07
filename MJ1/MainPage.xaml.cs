@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Algorithm;
 using System.Diagnostics;
+using System;
 
 namespace MJ1;
 
@@ -30,13 +31,13 @@ public partial class ViewModel : ObservableObject
     [ObservableProperty]
     private int tongCount = 4;
     [ObservableProperty]
-    private int tiaoCount = 5; 
+    private int tiaoCount = 5;
     [ObservableProperty]
     private int totalTiles = 13;
 
     [ObservableProperty]
     private string canWinTiles = "听牌：";
-    
+
 
     partial void OnWanCountChanged(int value) => TotalTiles = WanCount + TongCount + TiaoCount;
     partial void OnTongCountChanged(int value) => TotalTiles = WanCount + TongCount + TiaoCount;
@@ -48,6 +49,7 @@ public partial class ViewModel : ObservableObject
     private MahjongHand _handTile;
     public Grid TilesOne { get; set; } = [];    // 第一行
 
+    private static readonly int SELECT_MOVE_UP_POINT = 50;
 
     public ViewModel()
     {
@@ -55,38 +57,38 @@ public partial class ViewModel : ObservableObject
         _handTile = new();
     }
 
-    public static void FindMaxMin( int num1, int num2, int num3, out int maxValue, out int minValue )
+    public static void FindMaxMin(int num1, int num2, int num3, out int maxValue, out int minValue)
     {
         // 初始化最大值和最小值为第一个数字
         maxValue = num1;
         minValue = num1;
 
         // 比较第二个数字
-        if ( num2 > maxValue )
+        if (num2 > maxValue)
         {
             maxValue = num2;
         }
-        else if ( num2 < minValue )
+        else if (num2 < minValue)
         {
             minValue = num2;
         }
 
         // 比较第三个数字
-        if ( num3 > maxValue )
+        if (num3 > maxValue)
         {
             maxValue = num3;
         }
-        else if ( num3 < minValue )
+        else if (num3 < minValue)
         {
             minValue = num3;
         }
     }
 
-    private void CalculateTileValue()
+    private void CalculateTileValue(MahjongHand hand)
     {
-        var s1 = _handTile.GetScoreByType(TILE_TYPE.Tong);
-        var s2 = _handTile.GetScoreByType(TILE_TYPE.Tiao);
-        var s3 = _handTile.GetScoreByType(TILE_TYPE.Wan);
+        var s1 = hand.GetScoreByType(TILE_TYPE.Tong);
+        var s2 = hand.GetScoreByType(TILE_TYPE.Tiao);
+        var s3 = hand.GetScoreByType(TILE_TYPE.Wan);
         FindMaxMin(s1, s2, s3, out int max, out int min);
 
         ScoreLabel1 = $"筒: {s1}";
@@ -104,25 +106,30 @@ public partial class ViewModel : ObservableObject
         else ScoreLabelColor3 = Colors.White;
     }
 
-    private void CalculateTilesCanWin() // 计算胡牌，不管张数
+    private void CalculateTilesCanWin(MahjongHand hand) // 计算胡牌，不管张数
     {
-        var win = _handTile.Tiles.Calculate(out int score, out string detail);
+        var win = hand.Set.CalculateWin(out int score, out string detail);
         WinLabel = win ? $"WIN {score}分 {detail}" : $"NO {detail}";
         WinLabelColor = win ? Colors.Red : Colors.Green;
     }
 
-    private void CalculateTilesToWin()
+    private void CalculateTilesListen(MahjongHand hand)
     {
-        var canWin = _handTile.Tiles.ListenTiles(out int canWinCount );
+        if(!hand.Set.GetHiddenTiles().Count.CountCanListen())
+        {
+            CanWinTiles = "无法听牌";
+            return;
+        }
+        var canWin = hand.Set.CalculateListen(out int canWinCount);
 
         // 输出
-        if( canWin.Count > 0)
+        if (canWin.Count > 0)
             CanWinTiles = $"听牌：{canWin.Name}, 共 {canWin.Count} 类 {canWinCount} 张";
         else
-            CanWinTiles = "未听牌";
+            CanWinTiles = "无法听牌";
     }
 
-private static void VibrateDevice()
+    private static void VibrateDevice()
     {
         if (DeviceInfo.Platform == DevicePlatform.Android)
         {
@@ -130,96 +137,117 @@ private static void VibrateDevice()
             Vibration.Default.Vibrate(vibrationLength);
         }
     }
-    
+
+    #region Gesture & handlers
+    private void TileModify(MahjongHand hand, Grid grid, int index, bool minus)
+    {
+#if DEBUG
+        Trace.WriteLine($"TileModify @{index} minus: {minus}");
+#endif
+        VibrateDevice();
+        hand.Modify1(index, minus);
+        hand.Sort();
+        UpdateHandtileToGrid(hand, grid);
+        CalculateTileValue(hand);
+        CalculateTilesCanWin(hand);
+        CalculateTilesListen(hand);
+    }
+
+
+    private void TryTile(MahjongHand hand, Grid grid, int index)
+    {
+#if DEBUG
+        Trace.WriteLine($"TryTile @{index}");
+#endif
+        if (!hand.Select1(index))
+            return;
+
+        VibrateDevice();
+        // 修改Margin造成上移效果
+        foreach (var child in grid.Children)
+        {
+            if (child is Image image && Grid.GetColumn(image) == index)
+            {
+                if (image.Source == UI.Back1)
+                    image.Margin = new Thickness(0, (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 0, 0);
+                else
+                    image.Margin = new Thickness(0, 12 + (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 12, 0);
+#if DEBUG
+                //Trace.WriteLine(" Selected " + hand.IsSelected(index) + " Margin " + image.Margin.Top );   
+#endif
+            }
+        }
+        // 根据暗牌张数进行计算
+#if DEBUG
+        Trace.WriteLine("Hidden Count Now: " + hand.Set.CountHiddenTile());
+#endif
+        if (hand.Set.CountHiddenTile().CountCanWin())
+        {
+            CalculateTilesCanWin(hand);
+        }
+        // 张数合适计算叫
+        CalculateTilesListen(hand);
+    }
+
     private void UpdateHandtileToGrid(MahjongHand hand, Grid grid)
     {
-        int SELECT_MOVE_UP_POINT = 40;
         grid.ColumnDefinitions.Clear();
         grid.Children.Clear();
-        int tileCount = hand.Tiles.Count;
+        int tileCount = hand.Set.Count;
 
         // 动态创建列定义
         for (int i = 0; i < tileCount; i++)
         {
-            grid.ColumnDefinitions.Add(new (){ Width = GridLength.Auto });
-            var back = new Image { Source = UI.Back1, 
-                                        HeightRequest = 70,
-                                        Margin = new (0, SELECT_MOVE_UP_POINT, 0,0) };
-            var image = new Image{ Source = hand.Images[i],
-                                        HeightRequest = 70,
-                                        Margin = new (0, SELECT_MOVE_UP_POINT+12, 12,0) };
-
-            // 添加Swipe手势
             int index = i;
-            var swipeUp = new SwipeGestureRecognizer{ 
+            grid.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            var back = new Image
+            {
+                Source = UI.Back1,
+                HeightRequest = 70,
+                Margin = new(0, SELECT_MOVE_UP_POINT, 0, 0)
+            };
+            var image = new Image
+            {
+                Source = hand.Images[i],
+                HeightRequest = 70,
+                Margin = new(0, SELECT_MOVE_UP_POINT + 12, 12, 0)
+            };
+
+            // 添加Swipe手势 : 上下
+            var swipeUp = new SwipeGestureRecognizer
+            {
                 Direction = SwipeDirection.Up,
                 Threshold = 20
             };
-            swipeUp.Swiped += (sender, e) =>
-            {
-                VibrateDevice();
-                _handTile.Modify1(index, true);
-                _handTile.Sort();
-                UpdateHandtileToGrid(_handTile, grid );
-                CalculateTileValue();
-                CalculateTilesCanWin();
-                CalculateTilesToWin();
-            };
+            swipeUp.Swiped += (sender, e) => TileModify(hand, grid, index, true); 
 
-            var swipeDown = new SwipeGestureRecognizer{ 
+            var swipeDown = new SwipeGestureRecognizer
+            {
                 Direction = SwipeDirection.Down,
                 Threshold = 20,
             };
-            swipeDown.Swiped += (sender, e) =>
-            {
-                VibrateDevice();
-                _handTile.Modify1(index, false);
-                _handTile.Sort();
-                UpdateHandtileToGrid(_handTile, grid );
-                CalculateTileValue();
-                CalculateTilesCanWin();
-                CalculateTilesToWin();
-            };
+            swipeDown.Swiped += (sender, e) => TileModify(hand, grid, index, false);
 
             // 添加Tap手势
-            var tap = new TapGestureRecognizer
+            var tap1 = new TapGestureRecognizer
             {
                 NumberOfTapsRequired = 1,
             };
-            tap.Tapped += ( sender, e ) =>
-            {
-#if DEBUG
-                Trace.WriteLine($"Tapped #{index}");
-#endif
-                VibrateDevice();
-                _handTile.Select1( index );
-                foreach ( var child in grid.Children )
-                {
-                    if ( child is Image image && Grid.GetColumn( image ) == index )
-                    {
-                        if(image.Source == UI.Back1 )
-                            image.Margin = new Thickness(0, (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT ), 0, 0);
-                        else
-                            image.Margin = new Thickness( 0, 12 + ( hand.IsSelected( index ) ? 0 : SELECT_MOVE_UP_POINT ), 12, 0 );
-                    }
-                }
+            tap1.Tapped += (sender, e) => TryTile(hand, grid, index);
 
-                CalculateTileValue();
-                CalculateTilesCanWin();
-                CalculateTilesToWin();
-            };
+            // 手势加入image
+            image.GestureRecognizers.Add(swipeUp);
+            image.GestureRecognizers.Add(swipeDown);
+            image.GestureRecognizers.Add(tap1);
 
-            // 加入Grid
-            image.GestureRecognizers.Add( swipeUp );
-            image.GestureRecognizers.Add( swipeDown );
-            image.GestureRecognizers.Add( tap );
-
+            // image加入Grid
             grid.Children.Add(back);
             grid.Children.Add(image);
             Grid.SetColumn(back, i);
             Grid.SetColumn(image, i);
         }
     }
+    #endregion
 
     #region Commands
     [RelayCommand]
@@ -247,9 +275,9 @@ private static void VibrateDevice()
 
         _handTile.Sort();
         UpdateHandtileToGrid(_handTile, TilesOne);
-        CalculateTileValue();
-        CalculateTilesCanWin();
-        CalculateTilesToWin();
+        CalculateTileValue(_handTile);
+        CalculateTilesCanWin(_handTile);
+        CalculateTilesListen(_handTile);
     }
 
     [RelayCommand]
@@ -261,15 +289,15 @@ private static void VibrateDevice()
 
         _deck.Initialize();
         _handTile.Clear();
-        _deck.DrawTile(ref _handTile, TotalTiles );
+        _deck.DrawTile(ref _handTile, TotalTiles);
         _handTile.Sort();
         UpdateHandtileToGrid(_handTile, TilesOne);
-        CalculateTileValue();
-        CalculateTilesCanWin();
-        CalculateTilesToWin();
+        CalculateTileValue(_handTile);
+        CalculateTilesCanWin(_handTile);
+        CalculateTilesListen(_handTile);
     }
     #endregion
- }
+}
 
 
 public partial class MainPage : ContentPage

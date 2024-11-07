@@ -11,57 +11,63 @@ public partial class MahjongHand : ObservableObject
     [ObservableProperty]
     private ObservableCollection<ImageSource> images = [];
 
-    public List<MahjongTile> Tiles { get; private set; } = [];
+    private MahjongSet _set = [];
+    public MahjongSet Set => _set;
 
-    public int Count => Tiles.Count;
+    public int Count => _set.Count;
     #endregion
-
-    public void SetWhole(List<MahjongTile> init)
+    public void SetWhole(MahjongSet initSet)
     {
-        Tiles = init;
-        Images = new(Tiles.Select(UI.TileImage));
+        _set = initSet;
+        Images = new(_set.Select(UI.TileImage));
     }
 
     public void Clear()
     {
-        Tiles.Clear();
+        _set.Clear();
         Images.Clear();
     }
 
     public void AddTile(MahjongTile tile)
     {
-        Tiles.Add(tile);
+        _set.Add(tile);
         Images.Add(UI.TileImage(tile));
     }
 
     public void RemoveTile(MahjongTile tile)
     {
-        var index = Tiles.IndexOf(tile);
-        Tiles.Remove(tile);
+        var index = _set.IndexOf(tile);
+        _set.Remove(tile);
+        Images.RemoveAt(index);
+    }
+
+    public void RemoveTile(int index)
+    {
+        _set.RemoveAt(index);
         Images.RemoveAt(index);
     }
 
     public void ChangeTile(int index, MahjongTile newOne)
     {
-        if (index >= Tiles.Count)
+        if (index >= _set.Count)
             return;
-        Tiles[index] = newOne;
+        _set[index] = newOne;
         Images[index] = UI.TileImage(newOne);
     }
-    
-    public int GetScoreByType(TILE_TYPE type) => Tiles.GetTilesByType(type).Calculate();
+
+    public int GetScoreByType(TILE_TYPE type) => _set.GetTilesByType(type).CalculateValue();
 
     public void Sort()
     {
-        MahjongTileHelper.Sort(Tiles);
-        Images = new (Tiles.Select(UI.TileImage));
+        _set.Sort();
+        Images = new(_set.Select(UI.TileImage));
     }
 
     public void Modify1(int index, bool minus)    // 修改一个手牌中某一张
     {
-        if ( index >= Tiles.Count ) return;
+        if (index >= _set.Count) return;
 
-        var t = Tiles[index];
+        var t = _set[index];
         int newValue;
 
         if (minus)
@@ -80,16 +86,17 @@ public partial class MahjongHand : ObservableObject
         }
 
         // 已经有4个牌了（ kiilii 算法有问题，不是很好，不能直接跳过 ）
-        if (Tiles.CountSpecific(newValue) == 4) return;
+        if (_set.CountSpecific(newValue) == 4) return;
 
         ChangeTile(index, new(newValue));
     }
 
-    public void Select1(int index)
+    public bool Select1(int index)
     {
-        if (index >= Tiles.Count) return;
-        Tiles[index].Select();
+        if (index >= _set.Count) 
+            return false;
+        return _set[index].Select();
     }
-    
-    public bool IsSelected(int index) => Tiles[index].Status == TILE_STATUS.SELECTED;
+
+    public bool IsSelected(int index) => _set[index].Status == TILE_STATUS.SELECTED;
 }

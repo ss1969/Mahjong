@@ -31,17 +31,18 @@ internal class Program
 {
     static void TestScore( string tiles, int standardScore, bool trace = false )
     {
-        int s = ValueCalc.Calculate( tiles, trace );
+        int s = ValueCalc.CalculateValue( tiles, trace );
         string r = s == standardScore ? "PASS" : $"FAIL, GET:{s} STANDARD:{standardScore}";
         Console.WriteLine( $"{tiles} : {s} {r}" );
     }
 
     static void TestWin( List<MahjongTile> tiles, bool standard )
     {
-        var isWin = WinCalc.Calculate( tiles, out int score, out string detail );
+        var set = new MahjongSet(tiles);
+        var isWin = WinCalc.CalculateWin( set, out int score, out string detail );
         string r = (isWin == standard ? "PASS" : "FAIL") + $", Standard: {standard}, Score:{score}, {detail}";
-        Console.WriteLine( $"{tiles.Name} : {r}" );
-        var canWin = tiles.ListenTiles( out int canWinCount );
+        Console.WriteLine( $"{set.Name} : {r}" );
+        var canWin = set.CalculateListen( out int canWinCount );
         if ( canWin.Count > 0 )
         {
             Console.WriteLine( $"Listen：{canWin.Name}, Total {canWin.Count} Tile {canWinCount} Bricks" );

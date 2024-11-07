@@ -5,43 +5,49 @@ namespace MJ1;
 
 public class MahjongDeck
 {
-    private static readonly List<MahjongTile> value = [];
-    private List<MahjongTile> tiles = value;
-    private static readonly Random random = new ();
+    #region Vars
+    private readonly MahjongSet set = [];
+    private static readonly Random random = new();
+    #endregion
 
+    #region Prop
     public Image TileBack { get; set; }
+    #endregion
 
+    #region Ctor
     public MahjongDeck()
     {
         Initialize();
-        TileBack =  new Image() { Source = UI.Back1 };
+        TileBack = new Image() { Source = UI.Back1 };
     }
-    
+    #endregion
+
+    #region Methods
     public void Initialize()
     {
-        tiles.Clear();
-        for ( int i = 0; i < 4; i++ )
+        set.Clear();
+        for (int i = 0; i < 4; i++)
         {
-            for ( int number = 0x11; number <= 0x19; number++ )
-                tiles.Add( new MahjongTile( number ) );
-            for ( int number = 0x21; number <= 0x29; number++ )
-                tiles.Add( new MahjongTile( number ) );
-            for ( int number = 0x41; number <= 0x49; number++ )
-                tiles.Add( new MahjongTile( number ) );
+            for (int number = 0x11; number <= 0x19; number++)
+                set.Add(new(number));
+            for (int number = 0x21; number <= 0x29; number++)
+                set.Add(new(number));
+            for (int number = 0x41; number <= 0x49; number++)
+                set.Add(new(number));
         }
     }
 
     // 摸牌
-    public MahjongHand DrawTile(ref MahjongHand dest, int count)
+    public MahjongHand DrawTile(ref MahjongHand dst, int count)
     {
-        Debug.Assert(dest != null); 
-        dest.SetWhole(tiles.OrderBy(x => random.Next()).Take(count).ToList());
-        return dest;
+        Debug.Assert(dst != null);
+        dst.SetWhole(new(set.OrderBy(x => random.Next()).Take(count)));
+        return dst;
     }
 
     public MahjongHand DrawTile(ref MahjongHand dest)
     {
-        dest.AddTile(tiles.OrderBy(x => random.Next()).First());
+        dest.AddTile(set.OrderBy(x => random.Next()).First());
         return dest;
     }
 
@@ -50,7 +56,7 @@ public class MahjongDeck
         // Helper function to draw tiles of a specific type
         List<MahjongTile> DrawSpecificTiles(TILE_TYPE type, int count)
         {
-            var tilesOfType = tiles.Where( t => t.IsType( type ) ).OrderBy(t => random.Next()).Take(count).ToList();
+            var tilesOfType = set.Where(t => t.IsType(type)).OrderBy(t => random.Next()).Take(count).ToList();
             if (tilesOfType.Count < count)
             {
                 throw new InvalidOperationException($"Not enough {type} tiles in the deck.");
@@ -68,7 +74,7 @@ public class MahjongDeck
             foreach (var tile in wanTiles.Concat(tongTiles).Concat(tiaoTiles))
             {
                 dest.AddTile(tile);
-                tiles.Remove(tile);
+                set.Remove(tile);
             }
         }
         catch (InvalidOperationException)
@@ -78,4 +84,6 @@ public class MahjongDeck
 
         return dest;
     }
+    #endregion
+
 }

@@ -11,14 +11,13 @@
               HeightRequest="120"
               HorizontalOptions="Center"
               VerticalOptions="Start"
-              BackgroundColor="DarkGray"
               ColumnSpacing="-10" />
         <Grid x:Name="TilesTwo"
               HeightRequest="120"
               HorizontalOptions="Center"
               VerticalOptions="Start"
               ColumnSpacing="-10" />
-        <StackLayout Grid.Row="1" BackgroundColor="DarkGray"
+        <StackLayout Grid.Row="1"
                      HeightRequest="40"
                      HorizontalOptions="Center"
                      Orientation="Horizontal"
@@ -110,7 +109,7 @@
                     Command="{Binding DrawRandomCommand}"
                     CommandParameter="14" />
         </StackLayout>
-        <StackLayout Grid.Row="2" BackgroundColor="DarkGray"
+        <StackLayout Grid.Row="2"
                      HeightRequest="20"
                      HorizontalOptions="Center"
                      Orientation="Horizontal">
@@ -138,7 +137,7 @@
                    TextColor="{Binding WinLabelColor}"
                    Text="{Binding WinLabel}" />
         </StackLayout>
-        <StackLayout Grid.Row="3"  BackgroundColor="DarkGray"
+        <StackLayout Grid.Row="3"
                      HeightRequest="20"
                      HorizontalOptions="Center"
                      Orientation="Horizontal">
