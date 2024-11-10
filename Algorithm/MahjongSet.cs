@@ -141,5 +141,29 @@ public class MahjongSet : IEnumerable<MahjongTile>
         return result;
     }
 
+    // 选中一张牌，取消其他
+    private int _selected = -1;
+    public bool Select(int index)
+    {
+        if(index < 0 || index >= Tiles.Count)
+            return false;
+
+        if (Tiles[index].Status == TILE_STATUS.HIDDEN)
+        {
+            if (_selected >=0 && Tiles[_selected].Status == TILE_STATUS.SELECTED)
+                Tiles[_selected].Status = TILE_STATUS.HIDDEN;
+            Tiles[index].Status = TILE_STATUS.SELECTED;
+            _selected = index;
+            return true;    
+        }
+        else if (Tiles[index].Status == TILE_STATUS.SELECTED)
+        {
+            Tiles[index].Status = TILE_STATUS.HIDDEN;
+            _selected = -1;
+            return true;
+        }
+        return false;
+    }
+
     #endregion
 }

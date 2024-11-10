@@ -95,7 +95,7 @@ public partial class MahjongHand : ObservableObject
     {
         if (index >= _set.Count) 
             return false;
-        return _set[index].Select();
+        return _set.Select(index);
     }
 
     public bool IsSelected(int index) => _set[index].Status == TILE_STATUS.SELECTED;

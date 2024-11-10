@@ -62,14 +62,6 @@ public class MahjongTile(int number)
     // 是否同花色
     public bool IsSameType(MahjongTile tileToCompare) => Math.Abs(number - tileToCompare.Number) < 10;
 
-    // 选中、取消 (仅限暗牌)
-    public bool Select()
-    {
-        Status = Status == TILE_STATUS.HIDDEN ? TILE_STATUS.SELECTED : TILE_STATUS.HIDDEN;
-
-        return true;
-    }
-
     // 明一张牌
     public void Open()
     {

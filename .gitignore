@@ -55,3 +55,7 @@ dkms.conf
 .vs/
 bin/
 obj/
+
+#VS 
+*.csproj.user
+

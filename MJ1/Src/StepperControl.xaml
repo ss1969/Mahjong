@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ctrl="clr-namespace:Ctrl"
+             x:Class="Ctrl.StepperControl"
+             x:Name="root"
+             x:DataType="ctrl:StepperControl">
+    <ContentView.Resources>
+        <Style TargetType="Label">
+            <Setter Property="FontFamily" Value="PingFangSC" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="{Binding TextColor}" />
+            <Style.Triggers>
+                <DataTrigger TargetType="Label" Binding="{Binding IsEditable, Source={x:Reference root}}" Value="true">
+                    <Setter Property="IsEnabled" Value="true" />
+                    <Setter Property="Opacity" Value="1" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </ContentView.Resources>
+    <Border WidthRequest="95" HeightRequest="45"
+            Stroke="{Binding TextColor}"
+            StrokeThickness="2"
+            BindingContext="{x:Reference root}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="15,15,15,15" />
+        </Border.StrokeShape>
+        <Border.Triggers>
+            <DataTrigger TargetType="Border" Binding="{Binding IsEditable}" Value="false">
+                <Setter Property="Opacity" Value="0.5" />
+            </DataTrigger>
+        </Border.Triggers>
+        <!--  内部  -->
+        <Grid ColumnDefinitions="30, 30, 30">
+            <!--  减号  -->
+            <Label Padding="5,0,0,0" VerticalTextAlignment="Center" Opacity="0.4" Text="➖">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="OnMinusClicked" />
+                </Label.GestureRecognizers>
+            </Label>
+            <!--  数字  -->
+            <Entry x:Name="lblValue"
+                   Grid.Column="1"
+                   VerticalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   FontFamily="PingFangSC" FontSize="16"
+                   Text="{Binding Value}" />
+            <!--  加号  -->
+            <Label Grid.Column="2"
+                   Padding="5,0,0,0"
+                   VerticalTextAlignment="Center"
+                   Opacity="0.4"
+                   Text="➕">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="OnPlusClicked" />
+                </Label.GestureRecognizers>
+            </Label>
+        </Grid>
+    </Border>
+</ContentView>

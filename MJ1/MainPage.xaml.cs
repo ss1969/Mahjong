@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Algorithm;
 using System.Diagnostics;
-using System;
 
 namespace MJ1;
 
@@ -163,21 +162,23 @@ public partial class ViewModel : ObservableObject
             return;
 
         VibrateDevice();
-        // 修改Margin造成上移效果
-        foreach (var child in grid.Children)
-        {
-            if (child is Image image && Grid.GetColumn(image) == index)
-            {
-                if (image.Source == UI.Back1)
-                    image.Margin = new Thickness(0, (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 0, 0);
-                else
-                    image.Margin = new Thickness(0, 12 + (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 12, 0);
-#if DEBUG
-                //Trace.WriteLine(" Selected " + hand.IsSelected(index) + " Margin " + image.Margin.Top );   
-#endif
-            }
-        }
-        // 根据暗牌张数进行计算
+        UpdateHandtileToGrid(hand, grid);
+
+        //        // 修改Margin造成上移效果
+        //        foreach (var child in grid.Children)
+        //        {
+        //            if (child is Image image && Grid.GetColumn(image) == index)
+        //            {
+        //                if (image.Source == UI.Back1)
+        //                    image.Margin = new Thickness(0, (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 0, 0);
+        //                else
+        //                    image.Margin = new Thickness(0, 12 + (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 12, 0);
+        //#if DEBUG
+        //                //Trace.WriteLine(" Selected " + hand.IsSelected(index) + " Margin " + image.Margin.Top );   
+        //#endif
+        //            }
+        //        }
+        //        // 根据暗牌张数进行计算
 #if DEBUG
         Trace.WriteLine("Hidden Count Now: " + hand.Set.CountHiddenTile());
 #endif
@@ -203,14 +204,16 @@ public partial class ViewModel : ObservableObject
             var back = new Image
             {
                 Source = UI.Back1,
-                HeightRequest = 70,
-                Margin = new(0, SELECT_MOVE_UP_POINT, 0, 0)
+                HeightRequest = 75,
+                WidthRequest = 55,
+                Margin = new(0, (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 0, 0)
             };
             var image = new Image
             {
                 Source = hand.Images[i],
-                HeightRequest = 70,
-                Margin = new(0, SELECT_MOVE_UP_POINT + 12, 12, 0)
+                HeightRequest = 65,
+                WidthRequest = 45,
+                Margin = new(0, 12 + (hand.IsSelected(index) ? 0 : SELECT_MOVE_UP_POINT), 12, 0)
             };
 
             // 添加Swipe手势 : 上下
@@ -307,6 +310,7 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         BindingContext = new ViewModel();
         (BindingContext as ViewModel)!.TilesOne = TilesOne;
+
     }
 
 }
