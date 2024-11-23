@@ -1,37 +1,47 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:ctrl="clr-namespace:Ctrl" xmlns:local="clr-namespace:MJ1"
+             xmlns:ctrl="clr-namespace:Ctrl"
+             xmlns:local="clr-namespace:MJ1"
              x:Class="MJ1.MainPage">
 
-    <StackLayout HorizontalOptions="Fill" Orientation="Vertical" Spacing="20">
+    <StackLayout HorizontalOptions="Fill"
+                 Orientation="Vertical"
+                 Spacing="20">
         <!--  2个空Grid  -->
         <Grid x:Name="TilesOne"
-              HeightRequest="80"
-              HorizontalOptions="Center" VerticalOptions="Start"
-              ColumnSpacing="-10" />
-        <Grid x:Name="TilesTwo"
-              HeightRequest="80"
-              HorizontalOptions="Center" VerticalOptions="Start"
-              ColumnSpacing="-10" />
+              HeightRequest="200"
+              HorizontalOptions="Center"
+              VerticalOptions="Start"
+              ColumnSpacing="-10"
+              RowDefinitions="80, 120" />
         <!--  控制部分  -->
-        <StackLayout Margin="20,0,20,0" HorizontalOptions="Fill" Orientation="Horizontal" Spacing="10">
+        <StackLayout Margin="20,0,20,0"
+                     HorizontalOptions="Fill"
+                     Orientation="Horizontal"
+                     Spacing="10">
             <StackLayout Orientation="Vertical">
-                <Label Margin="0,0,20,0" FontSize="16" Text="{Binding TotalTiles, StringFormat='共{0} 张'}" />
                 <Label Margin="0,0,20,0"
-                       FontAttributes="Bold" FontSize="16"
+                       FontSize="16"
+                       Text="{Binding TotalTiles, StringFormat='共{0} 张'}" />
+                <Label Margin="0,0,20,0"
+                       FontAttributes="Bold"
+                       FontSize="16"
                        TextColor="{Binding ScoreLabelColor1}"
                        Text="{Binding ScoreLabel1}" />
                 <Label Margin="0,0,20,0"
-                       FontAttributes="Bold" FontSize="16"
+                       FontAttributes="Bold"
+                       FontSize="16"
                        TextColor="{Binding ScoreLabelColor2}"
                        Text="{Binding ScoreLabel2}" />
                 <Label Margin="0,0,20,0"
-                       FontAttributes="Bold" FontSize="16"
+                       FontAttributes="Bold"
+                       FontSize="16"
                        TextColor="{Binding ScoreLabelColor3}"
                        Text="{Binding ScoreLabel3}" />
                 <Label Margin="0,0,20,0"
-                       FontAttributes="Bold" FontSize="16"
+                       FontAttributes="Bold"
+                       FontSize="16"
                        TextColor="{Binding WinLabelColor}"
                        Text="{Binding WinLabel}" />
                 <Label FontSize="16" Text="{Binding CanWinTiles}" />
@@ -40,19 +50,36 @@
             <!--  筒条万加减  -->
             <Border Stroke="Transparent">
                 <Grid ColumnDefinitions="Auto, Auto" RowDefinitions="Auto, Auto, Auto, Auto">
-                    <Label VerticalOptions="Center" FontSize="20" Text="筒" />
-                    <ctrl:StepperControl Grid.Column="1" Maximum="15" Minimum="0" Value="{Binding TongCount}" />
-                    <Label Grid.Row="1" VerticalOptions="Center" FontSize="20" Text="条" />
-                    <ctrl:StepperControl Grid.Row="1" Grid.Column="1"
-                                         Maximum="15" Minimum="0"
+                    <Label VerticalOptions="Center"
+                           FontSize="20"
+                           Text="筒" />
+                    <ctrl:StepperControl Grid.Column="1"
+                                         Maximum="15"
+                                         Minimum="0"
+                                         Value="{Binding TongCount}" />
+                    <Label Grid.Row="1"
+                           VerticalOptions="Center"
+                           FontSize="20"
+                           Text="条" />
+                    <ctrl:StepperControl Grid.Row="1"
+                                         Grid.Column="1"
+                                         Maximum="15"
+                                         Minimum="0"
                                          Value="{Binding TiaoCount}" />
-                    <Label Grid.Row="2" VerticalOptions="Center" FontSize="20" Text="万" />
-                    <ctrl:StepperControl Grid.Row="2" Grid.Column="2"
-                                         Maximum="15" Minimum="0"
+                    <Label Grid.Row="2"
+                           VerticalOptions="Center"
+                           FontSize="20"
+                           Text="万" />
+                    <ctrl:StepperControl Grid.Row="2"
+                                         Grid.Column="2"
+                                         Maximum="15"
+                                         Minimum="0"
                                          Value="{Binding WanCount}" />
                 </Grid>
             </Border>
-            <StackLayout WidthRequest="40" Orientation="Vertical" Spacing="2">
+            <StackLayout WidthRequest="40"
+                         Orientation="Vertical"
+                         Spacing="2">
                 <Button HorizontalOptions="Fill"
                         FontSize="20"
                         BackgroundColor="LightBlue"
@@ -71,7 +98,9 @@
                         Command="{Binding DrawCommand}"
                         CommandParameter="5,5,5" />
             </StackLayout>
-            <StackLayout WidthRequest="40" Orientation="Vertical" Spacing="2">
+            <StackLayout WidthRequest="40"
+                         Orientation="Vertical"
+                         Spacing="2">
                 <Button Padding="0"
                         HorizontalOptions="Fill"
                         FontSize="20"
@@ -87,7 +116,9 @@
                         Command="{Binding DrawCommand}"
                         CommandParameter="6,7,0" />
             </StackLayout>
-            <StackLayout WidthRequest="40" Orientation="Vertical" Spacing="2">
+            <StackLayout WidthRequest="40"
+                         Orientation="Vertical"
+                         Spacing="2">
                 <Button Padding="0"
                         HorizontalOptions="Fill"
                         FontSize="20"
@@ -110,7 +141,9 @@
                         Command="{Binding DrawCommand}"
                         CommandParameter="11,3,0" />
             </StackLayout>
-            <StackLayout WidthRequest="50" Orientation="Vertical" Spacing="2">
+            <StackLayout WidthRequest="50"
+                         Orientation="Vertical"
+                         Spacing="2">
                 <Button Padding="0"
                         HorizontalOptions="Fill"
                         FontSize="20"
@@ -123,6 +156,11 @@
                         Text="R14"
                         Command="{Binding DrawRandomCommand}"
                         CommandParameter="14" />
+                <Button Padding="0"
+                        HorizontalOptions="Fill"
+                        FontSize="20"
+                        Text="C"
+                        Command="{Binding CalcCommand}" />
             </StackLayout>
         </StackLayout>
     </StackLayout>

@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Diagnostics;
 
 namespace Algorithm;
 
@@ -40,7 +42,7 @@ public class MahjongSet : IEnumerable<MahjongTile>
     // Name
     public string Name
         //=> $"[{ string.Join(",", tiles.Select(t => $"{t.Number:X2}")) }]";
-        => string.Join(",", Tiles.Select(t => t.Name));
+        => string.Join("", Tiles.Select(t => t.Name));
 
     // Sort, Copy, Remove, RemoveAt, Add, Clear
     public void Sort()
@@ -141,28 +143,76 @@ public class MahjongSet : IEnumerable<MahjongTile>
         return result;
     }
 
-    // 选中一张牌，取消其他
-    private int _selected = -1;
-    public bool Select(int index)
+    // 选中一张牌，取消其他；或者取消选中当前已选中
+    // forceSelect 一定选中这张，取消其他
+    public bool Select(int index, bool forceSelect = false)
     {
         if(index < 0 || index >= Tiles.Count)
             return false;
 
-        if (Tiles[index].Status == TILE_STATUS.HIDDEN)
+        for(int i = 0; i < Tiles.Count; i++)
         {
-            if (_selected >=0 && Tiles[_selected].Status == TILE_STATUS.SELECTED)
-                Tiles[_selected].Status = TILE_STATUS.HIDDEN;
-            Tiles[index].Status = TILE_STATUS.SELECTED;
-            _selected = index;
-            return true;    
+            switch (Tiles[i].Status)
+            {
+                case TILE_STATUS.OPEN:
+                    break;
+                case TILE_STATUS.HIDDEN:
+                    if(index == i)
+                        Tiles[i].Status = TILE_STATUS.SELECTED;
+                    break;
+                case TILE_STATUS.SELECTED:
+                    if (index == i)
+                    {
+                        if(!forceSelect)
+                            Tiles[i].Status = TILE_STATUS.HIDDEN;
+                    }
+                    else
+                    {
+                        Tiles[i].Status = TILE_STATUS.HIDDEN;
+                    }
+                    break;
+
+            }
         }
-        else if (Tiles[index].Status == TILE_STATUS.SELECTED)
+
+        index = Tiles.FindIndex(t => t.Status == TILE_STATUS.SELECTED);
+        return index != -1;
+    }
+
+    // 选择一张特定牌；未测
+    public bool Select(MahjongTile tile)
+    {
+        int i;
+        if ((i = Tiles.IndexOf(tile)) != -1)
         {
-            Tiles[index].Status = TILE_STATUS.HIDDEN;
-            _selected = -1;
+            Select(i, true);
             return true;
         }
+
         return false;
+    }
+
+    //保存和恢复选中牌
+    private int _selectedSave;
+    public void SaveSelected()
+    {
+        _selectedSave = Tiles.FindIndex(t => t.Status == TILE_STATUS.SELECTED);
+#if DEBUG
+        Trace.WriteLine($"SaveSelected: {_selectedSave}");
+#endif
+    }
+
+    public void LoadSelected()
+    {
+        if (_selectedSave == -1)
+        {
+            foreach (var t in Tiles)
+                if (t.Status == TILE_STATUS.SELECTED )
+                    t.Status = TILE_STATUS.HIDDEN;
+            return;
+        }
+        Tiles[_selectedSave].Status = TILE_STATUS.SELECTED;
+        Trace.WriteLine($"LoadSelected: {_selectedSave}");
     }
 
     #endregion

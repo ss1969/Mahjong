@@ -85,17 +85,17 @@ public partial class MahjongHand : ObservableObject
                 newValue = t.Number + 1;
         }
 
-        // 已经有4个牌了（ kiilii 算法有问题，不是很好，不能直接跳过 ）
+        // 已经有4个牌了（ kiilii 算法不很好，不能直接跳过 ）
         if (_set.CountSpecific(newValue) == 4) return;
 
         ChangeTile(index, new(newValue));
     }
 
-    public bool Select1(int index)
+    public void Select1(int index)
     {
         if (index >= _set.Count) 
-            return false;
-        return _set.Select(index);
+            return;
+        _set.Select(index);
     }
 
     public bool IsSelected(int index) => _set[index].Status == TILE_STATUS.SELECTED;

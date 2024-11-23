@@ -25,9 +25,18 @@ public static class WinCalc
     // 是否打缺
     public static bool IsQUE(this MahjongSet set) => set.CountType() <= 2;
 
-    // 张数是否可胡/听牌的（2、5、8、11、14）
-    public static bool CountCanWin(this int c) => (c == 2 || c == 5 || c == 8 || c == 11 || c == 14);
-    public static bool CountCanListen(this int c) => (c == 1 || c == 4 || c == 7 || c == 10 || c == 13);
+    // 张数是否可胡/听牌的（2、5、8、11、14），只计算暗牌
+    public static bool CountCanWin(this MahjongSet set)
+    {
+        int c = set.CountHiddenTile();
+        return (c == 2 || c == 5 || c == 8 || c == 11 || c == 14);
+    }
+
+    public static bool CountCanListen(this MahjongSet set)
+    {
+        int c = set.CountHiddenTile();
+        return (c == 1 || c == 4 || c == 7 || c == 10 || c == 13);
+    }
 
     // 获取所有的可能将，不重复。只返回单张。
     private static MahjongSet GetJiangs(this MahjongSet set)
@@ -110,10 +119,11 @@ public static class WinCalc
         isAllPairs = false;
         is19 = false;
 
+        if (!set.CountCanWin())
+            return false;
+
         // 取暗牌，张数计算，因为明牌肯定是碰杠出来的
         var hidden = set.GetHiddenTiles();
-        if (!hidden.Count.CountCanWin())
-            return false;
 
         // 2张一样直接true
         if (hidden.Count == 2 && hidden[0].Equals(hidden[1]))
@@ -230,18 +240,18 @@ public static class WinCalc
     }
 
     // 计算听牌
-    public static MahjongSet CalculateListen(this MahjongSet set, out int canWinCount)
+    public static MahjongSet CalculateListen(this MahjongSet set, out int listenCount)
     {
-        MahjongSet canWin = []; // 花色
-        canWinCount = 0; // 张数
+        MahjongSet listenSet = []; // 花色
+        listenCount = 0; // 张数
 
         if (!set.IsQUE())
-            return canWin;
+            return listenSet;
 
         // 取暗牌，张数计算，因为明牌肯定是碰杠出来的
         var hidden = set.GetHiddenTiles();
         if (hidden.Count != 1 && hidden.Count != 4 && hidden.Count != 7 && hidden.Count != 10 && hidden.Count != 13)
-            return canWin;
+            return listenSet;
 
         // 创建 暗牌 副本用于计算，否则会影响
         MahjongSet tilesCopy = hidden.Clone();
@@ -259,22 +269,23 @@ public static class WinCalc
             //Trace.WriteLine($"加入 {t.Name} 计算：");
 #endif
             if (tilesCopy.CalculateWin(out _, out _))
-                canWin.Add(t);
+                listenSet.Add(t);
             tilesCopy.Remove(t);
         }
 
 #if DEBUG
-        Trace.WriteLine("听牌：" + canWin.Name);
+        if(listenSet.Count > 0)
+            Trace.WriteLine("听牌：" + listenSet.Name);
 #endif
 
         // 计算剩余牌数
-        if (canWin.Count > 0)
+        if (listenSet.Count > 0)
         {
-            canWinCount = canWin.Count * 4;
-            canWinCount -= set.Count(t => canWin.Contains(t));
+            listenCount = listenSet.Count * 4;
+            listenCount -= set.Count(t => listenSet.Contains(t));
         }
 
-        return canWin;
+        return listenSet;
     }
 
 

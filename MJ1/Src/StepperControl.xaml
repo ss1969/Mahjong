@@ -7,7 +7,6 @@
              x:DataType="ctrl:StepperControl">
     <ContentView.Resources>
         <Style TargetType="Label">
-            <Setter Property="FontFamily" Value="PingFangSC" />
             <Setter Property="FontSize" Value="16" />
             <Setter Property="TextColor" Value="{Binding TextColor}" />
             <Style.Triggers>
@@ -43,7 +42,7 @@
                    Grid.Column="1"
                    VerticalOptions="Center"
                    HorizontalTextAlignment="Center"
-                   FontFamily="PingFangSC" FontSize="16"
+                   FontSize="16"
                    Text="{Binding Value}" />
             <!--  加号  -->
             <Label Grid.Column="2"
